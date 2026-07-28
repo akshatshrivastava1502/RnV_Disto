@@ -1,0 +1,31 @@
+# Build directories and artifacts
+build/
+Builds/
+out/
+bin/
+*.o
+*.obj
+*.exe
+*.dll
+*.dylib
+*.so
+*.a
+*.lib
+
+# IDE and OS files
+.DS_Store
+.idea/
+.vs/
+*.user
+*.xcodeproj/
+*.xcworkspace/
+
+# CMake specific
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# Ignore FetchContent JUCE downloads to prevent repository bloat
+build/_deps/
