@@ -1,5 +1,5 @@
 #pragma once
-
+#include "GUI/CustomLookAndFeel.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "PluginProcessor.h"
 
@@ -14,7 +14,7 @@ public:
 
 private:
     RnVDistoAudioProcessor& audioProcessor;
-
+    RnVDisto::GUI::CustomLookAndFeel customLookAndFeel;
     // --- UI Components ---
     juce::Slider inputGainSlider, driveSlider, toneSlider, outputGainSlider, mixSlider;
     juce::ComboBox typeSelector;

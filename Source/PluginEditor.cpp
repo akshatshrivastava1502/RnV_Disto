@@ -4,6 +4,7 @@
 RnVDistoAudioProcessorEditor::RnVDistoAudioProcessorEditor (RnVDistoAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
+    setLookAndFeel (&customLookAndFeel);
     // A quick lambda function to style our knobs cleanly without repetitive code
     auto setupSlider = [this](juce::Slider& slider, juce::Label& label, const juce::String& text) 
     {
@@ -45,6 +46,8 @@ RnVDistoAudioProcessorEditor::RnVDistoAudioProcessorEditor (RnVDistoAudioProcess
 
 RnVDistoAudioProcessorEditor::~RnVDistoAudioProcessorEditor()
 {
+    // CRITICAL: We must detach the LookAndFeel before the window is destroyed
+    setLookAndFeel (nullptr);
 }
 
 void RnVDistoAudioProcessorEditor::paint (juce::Graphics& g)
