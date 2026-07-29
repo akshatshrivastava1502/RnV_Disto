@@ -1,14 +1,27 @@
 #include "PluginProcessor.h"
-#include "PluginEditor.h"
 
+// --- Add this explicit include ---
+#include "PluginEditor.h"
+// ---------------------------------
+
+// ... rest of your implementation remains the same
 RnVDistoAudioProcessor::RnVDistoAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
                      .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
                      .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                     )
+                     ),
+       // Initialize the APVTS with our custom layout
+       apvts (*this, nullptr, "Parameters", RnVDisto::Parameters::createParameterLayout())
 #endif
 {
+    // Cache the atomic pointers here to avoid string lookups on the audio thread
+    inputGainParam  = apvts.getRawParameterValue (RnVDisto::Parameters::inputGainID);
+    driveParam      = apvts.getRawParameterValue (RnVDisto::Parameters::driveID);
+    typeParam       = apvts.getRawParameterValue (RnVDisto::Parameters::typeID);
+    toneParam       = apvts.getRawParameterValue ("tone");
+    outputGainParam = apvts.getRawParameterValue (RnVDisto::Parameters::outputGainID);
+    mixParam        = apvts.getRawParameterValue (RnVDisto::Parameters::mixID);
 }
 
 RnVDistoAudioProcessor::~RnVDistoAudioProcessor()
@@ -32,8 +45,37 @@ void RnVDistoAudioProcessor::changeProgramName (int index, const juce::String& n
 
 void RnVDistoAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    juce::ignoreUnused (sampleRate, samplesPerBlock);
-    // DSP initialization will go here
+    juce::dsp::ProcessSpec spec;
+    spec.maximumBlockSize = samplesPerBlock;
+    spec.sampleRate = sampleRate;
+    spec.numChannels = getTotalNumOutputChannels();
+
+    // 1. Input Stage
+    inputGain.prepare (spec);
+    inputGain.setRampDurationSeconds (0.02); 
+
+    dcBlocker.prepare (sampleRate, samplesPerBlock, getTotalNumOutputChannels());
+
+    // 2. Oversampling Engine
+    oversampler = std::make_unique<juce::dsp::Oversampling<float>> (
+        spec.numChannels, 1, juce::dsp::Oversampling<float>::filterHalfBandFIREquiripple, true);
+    oversampler->initProcessing (static_cast<size_t> (samplesPerBlock));
+    oversampler->reset();
+
+    // 3. Tone Stack
+    toneStack.prepare (spec);
+
+    // 4. Output Stage & Mixer
+    outputGain.prepare (spec);
+    outputGain.setRampDurationSeconds (0.02);
+
+    limiter.prepare (spec);
+    limiter.setThreshold (-0.1f); // Safety ceiling just below 0dBFS
+    limiter.setRelease (10.0f);   // Fast 10ms release to prevent pumping
+
+    dryWetMixer.prepare (spec);
+    // 20ms smoothing on the mix knob to prevent zipper noise
+    dryWetMixer.setMixingRule (juce::dsp::DryWetMixingRule::linear);
 }
 
 void RnVDistoAudioProcessor::releaseResources()
@@ -50,7 +92,7 @@ bool RnVDistoAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts)
     if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
         return false;
 
-    return true
+    return true;
 }
 
 void RnVDistoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -61,11 +103,59 @@ void RnVDistoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    // Clear output channels that don't contain input data to prevent feedback noise
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // DSP processing will go here
+    // --- 1. Parameter Fetching ---
+    // Read directly from the cached memory addresses (Lock-free and instant)
+    auto rawInputGain  = inputGainParam->load();
+    auto rawDrive      = driveParam->load();
+    auto rawType       = typeParam->load();
+    auto rawTone       = toneParam->load();
+    auto rawOutputGain = outputGainParam->load();
+    auto rawMix        = mixParam->load();
+    
+    // Update module parameters safely
+    inputGain.setGainDecibels (rawInputGain);
+    distortion.setType (static_cast<RnVDisto::DSP::DistortionType> (static_cast<int> (rawType)));
+    distortion.setDrive (rawDrive);
+    toneStack.setTone (rawTone);
+    outputGain.setGainDecibels (rawOutputGain);
+    
+    dryWetMixer.setWetMixProportion (rawMix / 100.0f);
+
+    // --- 2. DSP Processing Pipeline ---
+    juce::dsp::AudioBlock<float> audioBlock (buffer);
+    juce::dsp::ProcessContextReplacing<float> context (audioBlock);
+
+    // 🔴 CRITICAL: Push a copy of the untouched DRY signal into the mixer memory
+    dryWetMixer.pushDrySamples (audioBlock);
+
+    // Stage A: Input Formatting
+    inputGain.process (context);
+    dcBlocker.process (buffer);
+    
+    // Stage B: Oversampled Nonlinear Distortion
+    if (oversampler != nullptr)
+    {
+        juce::dsp::AudioBlock<float> oversampledBlock = oversampler->processSamplesUp (audioBlock);
+        distortion.process (oversampledBlock);
+        oversampler->processSamplesDown (audioBlock);
+    }
+    else
+    {
+        distortion.process (audioBlock);
+    }
+
+    // Stage C: Post-Distortion Tonal Shaping
+    toneStack.process (context);
+
+    // Stage D: Output Staging & Safety Limiting
+    outputGain.process (context);
+    limiter.process (context);
+
+    // 🟢 CRITICAL: Blend the processed WET block with the stored DRY block
+    dryWetMixer.mixWetSamples (audioBlock);
 }
 
 bool RnVDistoAudioProcessor::hasEditor() const
@@ -80,12 +170,20 @@ juce::AudioProcessorEditor* RnVDistoAudioProcessor::createEditor()
 
 void RnVDistoAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    juce::ignoreUnused (destData);
+    // Save the current parameter state to the DAW project
+    auto state = apvts.copyState();
+    std::unique_ptr<juce::XmlElement> xml (state.createXml());
+    copyXmlToBinary (*xml, destData);
 }
 
 void RnVDistoAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    juce::ignoreUnused (data, sizeInBytes);
+    // Load the parameter state when opening a saved DAW project
+    std::unique_ptr<juce::XmlElement> xmlState (getXmlFromBinary (data, sizeInBytes));
+
+    if (xmlState.get() != nullptr)
+        if (xmlState->hasTagName (apvts.state.getType()))
+            apvts.replaceState (juce::ValueTree::fromXml (*xmlState));
 }
 
 // This creates new instances of the plugin

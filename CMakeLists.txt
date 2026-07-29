@@ -26,6 +26,13 @@ juce_add_plugin(RnVDisto
     PRODUCT_NAME "RnV Disto"
 )
 
+target_compile_definitions(RnVDisto
+    PUBLIC
+        JUCE_VST3_CAN_REPLACE_VST2=0
+        JUCE_WEB_BROWSER=0
+        JUCE_USE_CURL=0
+)
+
 # Target our source files
 target_sources(RnVDisto PRIVATE
     Source/PluginProcessor.h
@@ -35,10 +42,13 @@ target_sources(RnVDisto PRIVATE
 )
 
 # Link necessary JUCE modules (including juce_dsp for our core processing)
-target_link_libraries(RnVDisto PRIVATE
-    juce::juce_audio_utils
-    juce::juce_dsp
-)
+target_link_libraries(RnVDisto
+    PRIVATE
+        juce::juce_audio_utils
+        juce::juce_dsp           # <-- Add this crucial line
+    PUBLIC
+        juce::juce_recommended_config_flags
+        juce::juce_recommended_warning_flags)
 
 # Enforce strict compiler warnings for commercial-guide safety
 if (MSVC)
