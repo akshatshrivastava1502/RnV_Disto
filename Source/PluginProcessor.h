@@ -44,6 +44,12 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    // Preset save/load helpers
+    void savePresetToFile (const juce::File& file);
+    void loadPresetFromFile (const juce::File& file);
+    juce::File getPresetsFolder();
+    juce::Array<juce::File> getPresetFiles();
+
     juce::AudioProcessorValueTreeState apvts;
 
 private:

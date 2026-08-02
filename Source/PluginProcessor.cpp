@@ -216,6 +216,76 @@ void RnVDistoAudioProcessor::setStateInformation (const void* data, int sizeInBy
             apvts.replaceState (juce::ValueTree::fromXml (*xmlState));
 }
 
+void RnVDistoAudioProcessor::savePresetToFile (const juce::File& file)
+{
+    juce::DynamicObject::Ptr jsonObj = new juce::DynamicObject();
+    
+    auto parameters = getParameters();
+    for (auto* param : parameters)
+    {
+        if (auto* rangedParam = dynamic_cast<juce::RangedAudioParameter*> (param))
+        {
+            jsonObj->setProperty (rangedParam->getParameterID(), 
+                                  rangedParam->getNormalisableRange().convertFrom0to1 (rangedParam->getValue()));
+        }
+    }
+    
+    juce::var jsonVar (jsonObj.get());
+    
+    juce::FileOutputStream stream (file);
+    if (stream.openedOk())
+    {
+        stream.setPosition (0);
+        stream.truncate();
+        juce::JSON::writeToStream (stream, jsonVar);
+    }
+}
+
+void RnVDistoAudioProcessor::loadPresetFromFile (const juce::File& file)
+{
+    juce::var jsonVar = juce::JSON::parse (file);
+    auto* jsonObj = jsonVar.getDynamicObject();
+    
+    if (jsonObj != nullptr)
+    {
+        auto parameters = getParameters();
+        for (auto* param : parameters)
+        {
+            if (auto* rangedParam = dynamic_cast<juce::RangedAudioParameter*> (param))
+            {
+                auto paramID = rangedParam->getParameterID();
+                if (jsonObj->hasProperty (paramID))
+                {
+                    float value = static_cast<float> (jsonObj->getProperty (paramID));
+                    float normalized = rangedParam->getNormalisableRange().convertTo0to1 (value);
+                    rangedParam->setValueNotifyingHost (normalized);
+                }
+            }
+        }
+    }
+}
+
+juce::File RnVDistoAudioProcessor::getPresetsFolder()
+{
+    auto dir = juce::File::getSpecialLocation (juce::File::userDocumentsDirectory)
+               .getChildFile ("ProdByRnV")
+               .getChildFile ("RnV Disto")
+               .getChildFile ("Presets");
+               
+    if (!dir.exists())
+        dir.createDirectory();
+        
+    return dir;
+}
+
+juce::Array<juce::File> RnVDistoAudioProcessor::getPresetFiles()
+{
+    juce::Array<juce::File> files;
+    auto dir = getPresetsFolder();
+    dir.findChildFiles (files, juce::File::findFiles, false, "*.rnv");
+    return files;
+}
+
 // This creates new instances of the plugin
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {

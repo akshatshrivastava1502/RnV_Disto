@@ -240,7 +240,66 @@ RnVDistoAudioProcessorEditor::RnVDistoAudioProcessorEditor (RnVDistoAudioProcess
     tabs.addTab ("Delay", juce::Colours::transparentBlack, new DelayTab (audioProcessor.apvts), true);
     addAndMakeVisible (tabs);
 
-    setSize (700, 400);
+    // Setup Preset Selector Dropdown
+    addAndMakeVisible (presetSelector);
+    updatePresetComboBox();
+    presetSelector.onChange = [this]() {
+        auto index = presetSelector.getSelectedItemIndex();
+        if (index >= 0)
+        {
+            auto files = audioProcessor.getPresetFiles();
+            if (index < files.size())
+            {
+                audioProcessor.loadPresetFromFile (files[index]);
+            }
+        }
+    };
+
+    // Setup Preset Buttons
+    savePresetButton.setButtonText ("Save Preset");
+    addAndMakeVisible (savePresetButton);
+    savePresetButton.onClick = [this]() {
+        fileChooser = std::make_unique<juce::FileChooser> (
+            "Save Preset",
+            audioProcessor.getPresetsFolder(),
+            "*.rnv"
+        );
+        fileChooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
+            [this] (const juce::FileChooser& fc)
+            {
+                auto file = fc.getResult();
+                if (file != juce::File{})
+                {
+                    if (file.getFileExtension() != ".rnv")
+                        file = file.withFileExtension (".rnv");
+                    
+                    audioProcessor.savePresetToFile (file);
+                    updatePresetComboBox();
+                }
+            });
+    };
+
+    loadPresetButton.setButtonText ("Load Preset");
+    addAndMakeVisible (loadPresetButton);
+    loadPresetButton.onClick = [this]() {
+        fileChooser = std::make_unique<juce::FileChooser> (
+            "Load Preset",
+            audioProcessor.getPresetsFolder(),
+            "*.rnv"
+        );
+        fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+            [this] (const juce::FileChooser& fc)
+            {
+                auto file = fc.getResult();
+                if (file.existsAsFile())
+                {
+                    audioProcessor.loadPresetFromFile (file);
+                    updatePresetComboBox();
+                }
+            });
+    };
+
+    setSize (700, 420);
 }
 
 RnVDistoAudioProcessorEditor::~RnVDistoAudioProcessorEditor()
@@ -251,9 +310,39 @@ RnVDistoAudioProcessorEditor::~RnVDistoAudioProcessorEditor()
 void RnVDistoAudioProcessorEditor::paint (juce::Graphics& g)
 {
     g.fillAll (juce::Colour::fromRGB (18, 18, 20));
+
+    // Draw the Header Title
+    g.setColour (juce::Colours::white);
+    g.setFont (juce::FontOptions (18.0f));
+    g.drawText ("RnV Disto", 20, 10, 150, 30, juce::Justification::left, true);
 }
 
 void RnVDistoAudioProcessorEditor::resized()
 {
-    tabs.setBounds (getLocalBounds());
+    auto bounds = getLocalBounds();
+    
+    // Top Bar Layout
+    auto topBar = bounds.removeFromTop (50);
+    
+    // Position Save/Load buttons and ComboBox on the right of top bar
+    loadPresetButton.setBounds (topBar.removeFromRight (100).reduced (5));
+    savePresetButton.setBounds (topBar.removeFromRight (100).reduced (5));
+    presetSelector.setBounds (topBar.removeFromRight (200).reduced (5));
+
+    // Tabbed component takes the rest
+    tabs.setBounds (bounds);
+}
+
+void RnVDistoAudioProcessorEditor::updatePresetComboBox()
+{
+    presetSelector.clear (juce::dontSendNotification);
+    
+    auto files = audioProcessor.getPresetFiles();
+    int id = 1;
+    for (auto& file : files)
+    {
+        presetSelector.addItem (file.getFileNameWithoutExtension(), id++);
+    }
+    
+    presetSelector.setText ("Select Preset...", juce::dontSendNotification);
 }
