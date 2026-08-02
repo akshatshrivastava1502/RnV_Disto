@@ -54,6 +54,8 @@ public:
     juce::AudioProcessorValueTreeState apvts;
 
 private:
+    juce::String getNeuralDspValue (const juce::MemoryBlock& data, const juce::String& key);
+
     // --- DSP Modules ---
     juce::dsp::Gain<float> inputGain;
     RnVDisto::DSP::DCBlocker dcBlocker;

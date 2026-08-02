@@ -226,6 +226,12 @@ void RnVDistoAudioProcessor::setStateInformation (const void* data, int sizeInBy
             apvts.replaceState (juce::ValueTree::fromXml (*xmlState));
 }
 
+// This creates new instances of the plugin
+juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
+{
+    return new RnVDistoAudioProcessor();
+}
+
 void RnVDistoAudioProcessor::savePresetToFile (const juce::File& file)
 {
     juce::DynamicObject::Ptr jsonObj = new juce::DynamicObject();
@@ -253,6 +259,80 @@ void RnVDistoAudioProcessor::savePresetToFile (const juce::File& file)
 
 void RnVDistoAudioProcessor::loadPresetFromFile (const juce::File& file)
 {
+    if (file.getFileExtension().toLowerCase() == ".xml")
+    {
+        juce::MemoryBlock data;
+        if (file.loadFileAsData (data))
+        {
+            const char* pData = static_cast<const char*> (data.getData());
+            if (data.getSize() > 8 && std::memcmp (pData, "henson-x", 8) == 0)
+            {
+                auto setParamValue = [this](const juce::String& paramID, float value)
+                {
+                    if (auto* param = apvts.getParameter (paramID))
+                    {
+                        if (auto* rangedParam = dynamic_cast<juce::RangedAudioParameter*> (param))
+                        {
+                            float normalized = rangedParam->getNormalisableRange().convertTo0to1 (value);
+                            rangedParam->setValueNotifyingHost (normalized);
+                        }
+                    }
+                };
+
+                auto getFloatVal = [this, &data](const juce::String& key, float defaultVal) -> float
+                {
+                    auto s = getNeuralDspValue (data, key);
+                    if (s.isNotEmpty())
+                        return s.getFloatValue();
+                    return defaultVal;
+                };
+
+                auto getBoolVal = [this, &data](const juce::String& key, bool defaultVal) -> bool
+                {
+                    auto s = getNeuralDspValue (data, key);
+                    if (s.isNotEmpty())
+                        return s == "true";
+                    return defaultVal;
+                };
+
+                float parsedInputGain = getFloatVal ("inputGain", 0.0f);
+                float parsedOutputGain = getFloatVal ("outputGain", 0.0f);
+                
+                bool gateActive = getBoolVal ("gateActive", true);
+                float gateThreshold = getFloatVal ("gateThreshold", -80.0f);
+                if (!gateActive)
+                    gateThreshold = -100.0f;
+
+                float drive = getFloatVal ("overdriveDrive", 0.0f) * 100.0f;
+                float tone = getFloatVal ("overdriveTone", 0.5f) * 2.0f - 1.0f;
+
+                float delayMix = getFloatVal ("delayMix", 0.0f) * 100.0f;
+                float delayTime = getFloatVal ("delayTime", 300.0f);
+                float delayFeedback = getFloatVal ("delayFeedback", 0.3f) * 100.0f;
+                delayFeedback = std::min (95.0f, delayFeedback);
+
+                float reverbMix = getFloatVal ("reverbMix", 0.0f) * 100.0f;
+                float reverbDecay = getFloatVal ("reverbDecay", 0.5f);
+                bool reverbActive = getBoolVal ("reverbActive", true);
+                if (!reverbActive)
+                    reverbMix = 0.0f;
+
+                setParamValue (RnVDisto::Parameters::inputGainID, parsedInputGain);
+                setParamValue (RnVDisto::Parameters::outputGainID, parsedOutputGain);
+                setParamValue (RnVDisto::Parameters::gateThresholdID, gateThreshold);
+                setParamValue (RnVDisto::Parameters::driveID, drive);
+                setParamValue ("tone", tone);
+                setParamValue (RnVDisto::Parameters::delayMixID, delayMix);
+                setParamValue (RnVDisto::Parameters::delayTimeID, delayTime);
+                setParamValue (RnVDisto::Parameters::delayFeedbackID, delayFeedback);
+                setParamValue (RnVDisto::Parameters::reverbMixID, reverbMix);
+                setParamValue (RnVDisto::Parameters::reverbSizeID, reverbDecay);
+            }
+        }
+        return;
+    }
+
+    // Default to JSON (.rnv)
     juce::var jsonVar = juce::JSON::parse (file);
     auto* jsonObj = jsonVar.getDynamicObject();
     
@@ -292,12 +372,36 @@ juce::Array<juce::File> RnVDistoAudioProcessor::getPresetFiles()
 {
     juce::Array<juce::File> files;
     auto dir = getPresetsFolder();
-    dir.findChildFiles (files, juce::File::findFiles, false, "*.rnv");
+    dir.findChildFiles (files, juce::File::findFiles, false, "*.rnv;*.xml");
     return files;
 }
 
-// This creates new instances of the plugin
-juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
+juce::String RnVDistoAudioProcessor::getNeuralDspValue (const juce::MemoryBlock& data, const juce::String& key)
 {
-    return new RnVDistoAudioProcessor();
+    auto keyStr = key.toRawUTF8();
+    int keyLen = key.length();
+    
+    const char* pData = static_cast<const char*> (data.getData());
+    int dataSize = static_cast<int> (data.getSize());
+    
+    for (int i = 0; i <= dataSize - keyLen; ++i)
+    {
+        if (std::memcmp (pData + i, keyStr, static_cast<size_t> (keyLen)) == 0)
+        {
+            int start = i + keyLen + 4;
+            if (start < dataSize)
+            {
+                juce::MemoryBlock valBlock;
+                for (int j = start; j < dataSize; ++j)
+                {
+                    if (pData[j] == '\0')
+                        break;
+                    valBlock.append (pData + j, 1);
+                }
+                valBlock.append ("", 1);
+                return juce::String (static_cast<const char*> (valBlock.getData()));
+            }
+        }
+    }
+    return {};
 }

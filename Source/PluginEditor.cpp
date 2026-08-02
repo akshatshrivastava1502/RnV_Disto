@@ -44,7 +44,7 @@ public:
     void resized() override
     {
         auto bounds = getLocalBounds().reduced (20);
-        bounds.removeFromTop (20);
+        bounds.removeFromTop (20); // space for titles/spacing
         
         const int knobWidth = 100;
         const int spacing = 15;
@@ -128,7 +128,7 @@ public:
     void resized() override
     {
         auto bounds = getLocalBounds().reduced (20);
-        bounds.removeFromTop (20);
+        bounds.removeFromTop (20); // space for titles/spacing
         
         const int knobWidth = 100;
         const int spacing = 20;
@@ -198,7 +198,7 @@ public:
     void resized() override
     {
         auto bounds = getLocalBounds().reduced (20);
-        bounds.removeFromTop (20);
+        bounds.removeFromTop (20); // space for titles/spacing
         
         const int knobWidth = 100;
         const int spacing = 20;
@@ -257,7 +257,7 @@ public:
     void resized() override
     {
         auto bounds = getLocalBounds().reduced (20);
-        bounds.removeFromTop (20);
+        bounds.removeFromTop (20); // space for titles/spacing
         
         const int knobWidth = 100;
         const int spacing = 20;
@@ -345,7 +345,7 @@ RnVDistoAudioProcessorEditor::RnVDistoAudioProcessorEditor (RnVDistoAudioProcess
         fileChooser = std::make_unique<juce::FileChooser> (
             "Load Preset",
             audioProcessor.getPresetsFolder(),
-            "*.rnv"
+            "*.rnv;*.xml"
         );
         fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
             [this] (const juce::FileChooser& fc)
@@ -359,6 +359,7 @@ RnVDistoAudioProcessorEditor::RnVDistoAudioProcessorEditor (RnVDistoAudioProcess
             });
     };
 
+    // Make the window wider to accommodate our tabs nicely
     setSize (700, 420);
 }
 
@@ -374,6 +375,7 @@ void RnVDistoAudioProcessorEditor::paint (juce::Graphics& g)
     // Draw the Header Title
     g.setColour (juce::Colours::white);
     g.setFont (juce::FontOptions (18.0f));
+    // Header takes top 50 pixels, drawing text in the middle area
     g.drawText ("RnV Disto", 20, 10, 150, 30, juce::Justification::left, true);
 }
 
