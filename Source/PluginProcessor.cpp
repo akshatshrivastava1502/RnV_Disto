@@ -22,6 +22,18 @@ RnVDistoAudioProcessor::RnVDistoAudioProcessor()
     toneParam       = apvts.getRawParameterValue ("tone");
     outputGainParam = apvts.getRawParameterValue (RnVDisto::Parameters::outputGainID);
     mixParam        = apvts.getRawParameterValue (RnVDisto::Parameters::mixID);
+
+    // Reverb parameters
+    reverbTypeParam  = apvts.getRawParameterValue (RnVDisto::Parameters::reverbTypeID);
+    reverbMixParam   = apvts.getRawParameterValue (RnVDisto::Parameters::reverbMixID);
+    reverbSizeParam  = apvts.getRawParameterValue (RnVDisto::Parameters::reverbSizeID);
+    reverbDampParam  = apvts.getRawParameterValue (RnVDisto::Parameters::reverbDampID);
+    reverbWidthParam = apvts.getRawParameterValue (RnVDisto::Parameters::reverbWidthID);
+
+    // Delay parameters
+    delayMixParam      = apvts.getRawParameterValue (RnVDisto::Parameters::delayMixID);
+    delayTimeParam     = apvts.getRawParameterValue (RnVDisto::Parameters::delayTimeID);
+    delayFeedbackParam = apvts.getRawParameterValue (RnVDisto::Parameters::delayFeedbackID);
 }
 
 RnVDistoAudioProcessor::~RnVDistoAudioProcessor()
@@ -65,7 +77,11 @@ void RnVDistoAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
     // 3. Tone Stack
     toneStack.prepare (spec);
 
-    // 4. Output Stage & Mixer
+    // 4. Delay & Reverb Stage
+    delay.prepare (spec);
+    reverb.prepare (spec);
+
+    // 5. Output Stage & Mixer
     outputGain.prepare (spec);
     outputGain.setRampDurationSeconds (0.02);
 
@@ -120,8 +136,18 @@ void RnVDistoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
     distortion.setType (static_cast<RnVDisto::DSP::DistortionType> (static_cast<int> (rawType)));
     distortion.setDrive (rawDrive);
     toneStack.setTone (rawTone);
-    outputGain.setGainDecibels (rawOutputGain);
     
+    // Reverb and Delay Parameter updates
+    delay.updateParameters (delayMixParam->load(), delayTimeParam->load(), delayFeedbackParam->load());
+    reverb.updateParameters (
+        static_cast<int>(reverbTypeParam->load()),
+        reverbMixParam->load(),
+        reverbSizeParam->load(),
+        reverbDampParam->load(),
+        reverbWidthParam->load()
+    );
+
+    outputGain.setGainDecibels (rawOutputGain);
     dryWetMixer.setWetMixProportion (rawMix / 100.0f);
 
     // --- 2. DSP Processing Pipeline ---
@@ -149,6 +175,10 @@ void RnVDistoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
 
     // Stage C: Post-Distortion Tonal Shaping
     toneStack.process (context);
+
+    // Stage C2: Reverb and Delay
+    delay.process (context);
+    reverb.process (context);
 
     // Stage D: Output Staging & Safety Limiting
     outputGain.process (context);

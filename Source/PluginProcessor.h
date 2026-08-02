@@ -8,6 +8,8 @@
 #include "DSP/DCBlocker.h"
 #include "DSP/Distortion.h" 
 #include "DSP/ToneStack.h"    // <--- Add this missing link
+#include "DSP/Delay.h"
+#include "DSP/Reverb.h"
 // -----------------------------------------
 
 // ... rest of your code
@@ -51,6 +53,8 @@ private:
     RnVDisto::DSP::Distortion distortion;
     RnVDisto::DSP::ToneStack toneStack;
     std::unique_ptr<juce::dsp::Oversampling<float>> oversampler;
+    RnVDisto::DSP::Delay delay;
+    RnVDisto::DSP::Reverb reverb;
 
     // NEW: Output Stage Modules
     juce::dsp::Gain<float> outputGain;
@@ -64,6 +68,18 @@ private:
     std::atomic<float>* toneParam = nullptr;
     std::atomic<float>* outputGainParam = nullptr;
     std::atomic<float>* mixParam = nullptr;
+
+    // Reverb parameters
+    std::atomic<float>* reverbTypeParam = nullptr;
+    std::atomic<float>* reverbMixParam = nullptr;
+    std::atomic<float>* reverbSizeParam = nullptr;
+    std::atomic<float>* reverbDampParam = nullptr;
+    std::atomic<float>* reverbWidthParam = nullptr;
+
+    // Delay parameters
+    std::atomic<float>* delayMixParam = nullptr;
+    std::atomic<float>* delayTimeParam = nullptr;
+    std::atomic<float>* delayFeedbackParam = nullptr;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RnVDistoAudioProcessor)
 };
