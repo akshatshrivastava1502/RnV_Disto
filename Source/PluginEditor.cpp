@@ -227,6 +227,65 @@ private:
 };
 
 // ==============================================================================
+// Gate Tab Component
+// ==============================================================================
+class GateTab : public juce::Component
+{
+public:
+    GateTab (juce::AudioProcessorValueTreeState& apvts)
+    {
+        auto setupSlider = [this](juce::Slider& slider, juce::Label& label, const juce::String& text) 
+        {
+            slider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+            slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 70, 20);
+            addAndMakeVisible (slider);
+
+            label.setText (text, juce::dontSendNotification);
+            label.setJustificationType (juce::Justification::centred);
+            addAndMakeVisible (label);
+        };
+
+        setupSlider (thresholdSlider, thresholdLabel, "Threshold (dB)");
+        setupSlider (attackSlider, attackLabel, "Attack (ms)");
+        setupSlider (releaseSlider, releaseLabel, "Release (ms)");
+
+        thresholdAttachment = std::make_unique<SliderAttachment> (apvts, RnVDisto::Parameters::gateThresholdID, thresholdSlider);
+        attackAttachment    = std::make_unique<SliderAttachment> (apvts, RnVDisto::Parameters::gateAttackID, attackSlider);
+        releaseAttachment   = std::make_unique<SliderAttachment> (apvts, RnVDisto::Parameters::gateReleaseID, releaseSlider);
+    }
+
+    void resized() override
+    {
+        auto bounds = getLocalBounds().reduced (20);
+        bounds.removeFromTop (20);
+        
+        const int knobWidth = 100;
+        const int spacing = 20;
+
+        auto knobRow = bounds.removeFromTop (130).withSizeKeepingCentre (340, 130);
+        
+        thresholdSlider.setBounds (knobRow.removeFromLeft (knobWidth));
+        thresholdLabel.setBounds (thresholdSlider.getBounds().translated (0, -20).withHeight (20));
+        knobRow.removeFromLeft (spacing);
+
+        attackSlider.setBounds (knobRow.removeFromLeft (knobWidth));
+        attackLabel.setBounds (attackSlider.getBounds().translated (0, -20).withHeight (20));
+        knobRow.removeFromLeft (spacing);
+
+        releaseSlider.setBounds (knobRow.removeFromLeft (knobWidth));
+        releaseLabel.setBounds (releaseSlider.getBounds().translated (0, -20).withHeight (20));
+    }
+
+private:
+    juce::Slider thresholdSlider, attackSlider, releaseSlider;
+    juce::Label thresholdLabel, attackLabel, releaseLabel;
+
+    using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
+
+    std::unique_ptr<SliderAttachment> thresholdAttachment, attackAttachment, releaseAttachment;
+};
+
+// ==============================================================================
 // RnVDistoAudioProcessorEditor Implementation
 // ==============================================================================
 RnVDistoAudioProcessorEditor::RnVDistoAudioProcessorEditor (RnVDistoAudioProcessor& p)
@@ -238,6 +297,7 @@ RnVDistoAudioProcessorEditor::RnVDistoAudioProcessorEditor (RnVDistoAudioProcess
     tabs.addTab ("Distortion", juce::Colours::transparentBlack, new DistortionTab (audioProcessor.apvts), true);
     tabs.addTab ("Reverb", juce::Colours::transparentBlack, new ReverbTab (audioProcessor.apvts), true);
     tabs.addTab ("Delay", juce::Colours::transparentBlack, new DelayTab (audioProcessor.apvts), true);
+    tabs.addTab ("Gate", juce::Colours::transparentBlack, new GateTab (audioProcessor.apvts), true);
     addAndMakeVisible (tabs);
 
     // Setup Preset Selector Dropdown

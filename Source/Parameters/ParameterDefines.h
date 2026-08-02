@@ -24,6 +24,11 @@ namespace Parameters
     const juce::String delayTimeID     = "delay_time";
     const juce::String delayFeedbackID = "delay_feedback";
 
+    // Noise Gate IDs
+    const juce::String gateThresholdID = "gate_threshold";
+    const juce::String gateAttackID    = "gate_attack";
+    const juce::String gateReleaseID   = "gate_release";
+
     // Human-readable names
     const juce::String inputGainName  = "Input Gain";
     const juce::String driveName      = "Drive";
@@ -93,6 +98,19 @@ namespace Parameters
         params.push_back (std::make_unique<juce::AudioParameterFloat> (
             juce::ParameterID (delayFeedbackID, 1), "Delay Feedback",
             juce::NormalisableRange<float> (0.0f, 95.0f, 1.0f), 30.0f));
+
+        // Noise Gate parameters
+        params.push_back (std::make_unique<juce::AudioParameterFloat> (
+            juce::ParameterID (gateThresholdID, 1), "Gate Threshold",
+            juce::NormalisableRange<float> (-100.0f, 0.0f, 0.1f), -80.0f));
+
+        params.push_back (std::make_unique<juce::AudioParameterFloat> (
+            juce::ParameterID (gateAttackID, 1), "Gate Attack",
+            juce::NormalisableRange<float> (0.1f, 100.0f, 0.1f), 1.0f));
+
+        params.push_back (std::make_unique<juce::AudioParameterFloat> (
+            juce::ParameterID (gateReleaseID, 1), "Gate Release",
+            juce::NormalisableRange<float> (10.0f, 1000.0f, 1.0f), 100.0f));
 
         return { params.begin(), params.end() };
     }

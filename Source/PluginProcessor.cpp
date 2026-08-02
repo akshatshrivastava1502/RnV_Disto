@@ -34,6 +34,11 @@ RnVDistoAudioProcessor::RnVDistoAudioProcessor()
     delayMixParam      = apvts.getRawParameterValue (RnVDisto::Parameters::delayMixID);
     delayTimeParam     = apvts.getRawParameterValue (RnVDisto::Parameters::delayTimeID);
     delayFeedbackParam = apvts.getRawParameterValue (RnVDisto::Parameters::delayFeedbackID);
+
+    // Noise Gate parameters
+    gateThresholdParam = apvts.getRawParameterValue (RnVDisto::Parameters::gateThresholdID);
+    gateAttackParam    = apvts.getRawParameterValue (RnVDisto::Parameters::gateAttackID);
+    gateReleaseParam   = apvts.getRawParameterValue (RnVDisto::Parameters::gateReleaseID);
 }
 
 RnVDistoAudioProcessor::~RnVDistoAudioProcessor()
@@ -80,6 +85,7 @@ void RnVDistoAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
     // 4. Delay & Reverb Stage
     delay.prepare (spec);
     reverb.prepare (spec);
+    noiseGate.prepare (spec);
 
     // 5. Output Stage & Mixer
     outputGain.prepare (spec);
@@ -147,6 +153,9 @@ void RnVDistoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
         reverbWidthParam->load()
     );
 
+    // Noise Gate updates
+    noiseGate.updateParameters (gateThresholdParam->load(), gateAttackParam->load(), gateReleaseParam->load());
+
     outputGain.setGainDecibels (rawOutputGain);
     dryWetMixer.setWetMixProportion (rawMix / 100.0f);
 
@@ -157,9 +166,10 @@ void RnVDistoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
     // 🔴 CRITICAL: Push a copy of the untouched DRY signal into the mixer memory
     dryWetMixer.pushDrySamples (audioBlock);
 
-    // Stage A: Input Formatting
+    // Stage A: Input Formatting and Sanitization
     inputGain.process (context);
     dcBlocker.process (buffer);
+    noiseGate.process (context);
     
     // Stage B: Oversampled Nonlinear Distortion
     if (oversampler != nullptr)

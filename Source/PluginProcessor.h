@@ -10,6 +10,7 @@
 #include "DSP/ToneStack.h"    // <--- Add this missing link
 #include "DSP/Delay.h"
 #include "DSP/Reverb.h"
+#include "DSP/NoiseGate.h"
 // -----------------------------------------
 
 // ... rest of your code
@@ -61,6 +62,7 @@ private:
     std::unique_ptr<juce::dsp::Oversampling<float>> oversampler;
     RnVDisto::DSP::Delay delay;
     RnVDisto::DSP::Reverb reverb;
+    RnVDisto::DSP::NoiseGate noiseGate;
 
     // NEW: Output Stage Modules
     juce::dsp::Gain<float> outputGain;
@@ -86,6 +88,11 @@ private:
     std::atomic<float>* delayMixParam = nullptr;
     std::atomic<float>* delayTimeParam = nullptr;
     std::atomic<float>* delayFeedbackParam = nullptr;
+
+    // Noise Gate parameters
+    std::atomic<float>* gateThresholdParam = nullptr;
+    std::atomic<float>* gateAttackParam = nullptr;
+    std::atomic<float>* gateReleaseParam = nullptr;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RnVDistoAudioProcessor)
 };

@@ -56,6 +56,7 @@ target_sources(RnVDisto PRIVATE
     Source/PluginEditor.cpp
     Source/DSP/Delay.h
     Source/DSP/Reverb.h
+    Source/DSP/NoiseGate.h
 )
 
 # Link necessary JUCE modules (including juce_dsp for our core processing)
