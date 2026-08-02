@@ -29,5 +29,15 @@ private:
     // --- File Chooser ---
     std::unique_ptr<juce::FileChooser> fileChooser;
 
+    // --- Top Bar Controls ---
+    juce::ToggleButton bypassButton;
+    juce::ComboBox inputChannelSelector;
+
+    using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
+    using ComboBoxAttachment = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
+
+    std::unique_ptr<ButtonAttachment> bypassAttachment;
+    std::unique_ptr<ComboBoxAttachment> inputChannelAttachment;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RnVDistoAudioProcessorEditor)
 };

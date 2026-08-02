@@ -39,6 +39,16 @@ RnVDistoAudioProcessor::RnVDistoAudioProcessor()
     gateThresholdParam = apvts.getRawParameterValue (RnVDisto::Parameters::gateThresholdID);
     gateAttackParam    = apvts.getRawParameterValue (RnVDisto::Parameters::gateAttackID);
     gateReleaseParam   = apvts.getRawParameterValue (RnVDisto::Parameters::gateReleaseID);
+
+    // Power parameters
+    bypassParam          = apvts.getRawParameterValue (RnVDisto::Parameters::bypassID);
+    distortionPowerParam = apvts.getRawParameterValue (RnVDisto::Parameters::distortionPowerID);
+    reverbPowerParam     = apvts.getRawParameterValue (RnVDisto::Parameters::reverbPowerID);
+    delayPowerParam      = apvts.getRawParameterValue (RnVDisto::Parameters::delayPowerID);
+    gatePowerParam       = apvts.getRawParameterValue (RnVDisto::Parameters::gatePowerID);
+
+    // Channel parameters
+    inputChannelModeParam = apvts.getRawParameterValue (RnVDisto::Parameters::inputChannelModeID);
 }
 
 RnVDistoAudioProcessor::~RnVDistoAudioProcessor()
@@ -128,6 +138,23 @@ void RnVDistoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
+    // --- Active Input Channel Selection Mode ---
+    auto channelMode = static_cast<int> (inputChannelModeParam->load());
+    if (channelMode == 1) // Input 1 only (copy left to right)
+    {
+        if (totalNumInputChannels >= 2)
+            buffer.copyFrom (1, 0, buffer.getReadPointer (0), buffer.getNumSamples());
+    }
+    else if (channelMode == 2) // Input 2 only (copy right to left)
+    {
+        if (totalNumInputChannels >= 2)
+            buffer.copyFrom (0, 0, buffer.getReadPointer (1), buffer.getNumSamples());
+    }
+
+    // If global bypass is ON, bypass the entire processing
+    if (bypassParam->load() >= 0.5f)
+        return;
+
     // --- 1. Parameter Fetching ---
     // Read directly from the cached memory addresses (Lock-free and instant)
     auto rawInputGain  = inputGainParam->load();
@@ -169,26 +196,34 @@ void RnVDistoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
     // Stage A: Input Formatting and Sanitization
     inputGain.process (context);
     dcBlocker.process (buffer);
-    noiseGate.process (context);
+    
+    if (gatePowerParam->load() >= 0.5f)
+        noiseGate.process (context);
     
     // Stage B: Oversampled Nonlinear Distortion
-    if (oversampler != nullptr)
+    if (distortionPowerParam->load() >= 0.5f)
     {
-        juce::dsp::AudioBlock<float> oversampledBlock = oversampler->processSamplesUp (audioBlock);
-        distortion.process (oversampledBlock);
-        oversampler->processSamplesDown (audioBlock);
-    }
-    else
-    {
-        distortion.process (audioBlock);
-    }
+        if (oversampler != nullptr)
+        {
+            juce::dsp::AudioBlock<float> oversampledBlock = oversampler->processSamplesUp (audioBlock);
+            distortion.process (oversampledBlock);
+            oversampler->processSamplesDown (audioBlock);
+        }
+        else
+        {
+            distortion.process (audioBlock);
+        }
 
-    // Stage C: Post-Distortion Tonal Shaping
-    toneStack.process (context);
+        // Stage C: Post-Distortion Tonal Shaping
+        toneStack.process (context);
+    }
 
     // Stage C2: Reverb and Delay
-    delay.process (context);
-    reverb.process (context);
+    if (delayPowerParam->load() >= 0.5f)
+        delay.process (context);
+
+    if (reverbPowerParam->load() >= 0.5f)
+        reverb.process (context);
 
     // Stage D: Output Staging & Safety Limiting
     outputGain.process (context);
@@ -300,22 +335,20 @@ void RnVDistoAudioProcessor::loadPresetFromFile (const juce::File& file)
                 
                 bool gateActive = getBoolVal ("gateActive", true);
                 float gateThreshold = getFloatVal ("gateThreshold", -80.0f);
-                if (!gateActive)
-                    gateThreshold = -100.0f;
 
                 float drive = getFloatVal ("overdriveDrive", 0.0f) * 100.0f;
                 float tone = getFloatVal ("overdriveTone", 0.5f) * 2.0f - 1.0f;
+                bool overdriveActive = getBoolVal ("overdriveActive", true);
 
                 float delayMix = getFloatVal ("delayMix", 0.0f) * 100.0f;
                 float delayTime = getFloatVal ("delayTime", 300.0f);
                 float delayFeedback = getFloatVal ("delayFeedback", 0.3f) * 100.0f;
                 delayFeedback = std::min (95.0f, delayFeedback);
+                bool delayActive = getBoolVal ("delayActive", true);
 
                 float reverbMix = getFloatVal ("reverbMix", 0.0f) * 100.0f;
                 float reverbDecay = getFloatVal ("reverbDecay", 0.5f);
                 bool reverbActive = getBoolVal ("reverbActive", true);
-                if (!reverbActive)
-                    reverbMix = 0.0f;
 
                 setParamValue (RnVDisto::Parameters::inputGainID, parsedInputGain);
                 setParamValue (RnVDisto::Parameters::outputGainID, parsedOutputGain);
@@ -327,6 +360,13 @@ void RnVDistoAudioProcessor::loadPresetFromFile (const juce::File& file)
                 setParamValue (RnVDisto::Parameters::delayFeedbackID, delayFeedback);
                 setParamValue (RnVDisto::Parameters::reverbMixID, reverbMix);
                 setParamValue (RnVDisto::Parameters::reverbSizeID, reverbDecay);
+
+                // Set power states
+                setParamValue (RnVDisto::Parameters::bypassID, 0.0f);
+                setParamValue (RnVDisto::Parameters::gatePowerID, gateActive ? 1.0f : 0.0f);
+                setParamValue (RnVDisto::Parameters::distortionPowerID, overdriveActive ? 1.0f : 0.0f);
+                setParamValue (RnVDisto::Parameters::delayPowerID, delayActive ? 1.0f : 0.0f);
+                setParamValue (RnVDisto::Parameters::reverbPowerID, reverbActive ? 1.0f : 0.0f);
             }
         }
         return;

@@ -24,6 +24,16 @@ namespace Parameters
     const juce::String delayTimeID     = "delay_time";
     const juce::String delayFeedbackID = "delay_feedback";
 
+    // Power IDs
+    const juce::String bypassID          = "bypass";
+    const juce::String distortionPowerID = "distortion_power";
+    const juce::String reverbPowerID     = "reverb_power";
+    const juce::String delayPowerID      = "delay_power";
+    const juce::String gatePowerID       = "gate_power";
+
+    // Channel Selection ID
+    const juce::String inputChannelModeID = "input_channel_mode";
+
     // Noise Gate IDs
     const juce::String gateThresholdID = "gate_threshold";
     const juce::String gateAttackID    = "gate_attack";
@@ -39,6 +49,27 @@ namespace Parameters
     inline juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
     {
         std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
+
+        // Power parameters
+        params.push_back (std::make_unique<juce::AudioParameterBool> (
+            juce::ParameterID (bypassID, 1), "Bypass", false));
+
+        params.push_back (std::make_unique<juce::AudioParameterBool> (
+            juce::ParameterID (distortionPowerID, 1), "Distortion Power", true));
+
+        params.push_back (std::make_unique<juce::AudioParameterBool> (
+            juce::ParameterID (reverbPowerID, 1), "Reverb Power", true));
+
+        params.push_back (std::make_unique<juce::AudioParameterBool> (
+            juce::ParameterID (delayPowerID, 1), "Delay Power", true));
+
+        params.push_back (std::make_unique<juce::AudioParameterBool> (
+            juce::ParameterID (gatePowerID, 1), "Gate Power", true));
+
+        // Input Channel Selection parameter
+        juce::StringArray inputChannelModes = { "Both", "1", "2" };
+        params.push_back (std::make_unique<juce::AudioParameterChoice> (
+            juce::ParameterID (inputChannelModeID, 1), "Input Channel Selection", inputChannelModes, 0));
 
         // Distortion / Gain parameters
         params.push_back (std::make_unique<juce::AudioParameterFloat> (

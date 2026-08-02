@@ -71,6 +71,16 @@ private:
     juce::dsp::Limiter<float> limiter;
     juce::dsp::DryWetMixer<float> dryWetMixer;
 
+    // Power parameters
+    std::atomic<float>* bypassParam = nullptr;
+    std::atomic<float>* distortionPowerParam = nullptr;
+    std::atomic<float>* reverbPowerParam = nullptr;
+    std::atomic<float>* delayPowerParam = nullptr;
+    std::atomic<float>* gatePowerParam = nullptr;
+
+    // Channel parameters
+    std::atomic<float>* inputChannelModeParam = nullptr;
+
     // --- Cached Parameter Pointers (For Lock-Free Real-Time Reads) ---
     std::atomic<float>* inputGainParam = nullptr;
     std::atomic<float>* driveParam = nullptr;

@@ -9,6 +9,10 @@ class DistortionTab : public juce::Component
 public:
     DistortionTab (juce::AudioProcessorValueTreeState& apvts)
     {
+        powerButton.setButtonText ("Power");
+        addAndMakeVisible (powerButton);
+        powerAttachment = std::make_unique<ButtonAttachment> (apvts, RnVDisto::Parameters::distortionPowerID, powerButton);
+
         auto setupSlider = [this](juce::Slider& slider, juce::Label& label, const juce::String& text) 
         {
             slider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
@@ -44,7 +48,8 @@ public:
     void resized() override
     {
         auto bounds = getLocalBounds().reduced (20);
-        bounds.removeFromTop (20); // space for titles/spacing
+        powerButton.setBounds (bounds.removeFromTop (30).withSizeKeepingCentre (80, 25));
+        bounds.removeFromTop (10); // spacing
         
         const int knobWidth = 100;
         const int spacing = 15;
@@ -76,13 +81,16 @@ public:
     }
 
 private:
+    juce::ToggleButton powerButton;
     juce::Slider inputGainSlider, driveSlider, toneSlider, outputGainSlider, mixSlider;
     juce::ComboBox typeSelector;
     juce::Label inputLabel, driveLabel, toneLabel, outputLabel, mixLabel, typeLabel;
 
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
     using ComboBoxAttachment = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
+    using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
 
+    std::unique_ptr<ButtonAttachment> powerAttachment;
     std::unique_ptr<SliderAttachment> inputGainAttachment, driveAttachment, toneAttachment, outputGainAttachment, mixAttachment;
     std::unique_ptr<ComboBoxAttachment> typeAttachment;
 };
@@ -95,6 +103,10 @@ class ReverbTab : public juce::Component
 public:
     ReverbTab (juce::AudioProcessorValueTreeState& apvts)
     {
+        powerButton.setButtonText ("Power");
+        addAndMakeVisible (powerButton);
+        powerAttachment = std::make_unique<ButtonAttachment> (apvts, RnVDisto::Parameters::reverbPowerID, powerButton);
+
         auto setupSlider = [this](juce::Slider& slider, juce::Label& label, const juce::String& text) 
         {
             slider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
@@ -128,7 +140,8 @@ public:
     void resized() override
     {
         auto bounds = getLocalBounds().reduced (20);
-        bounds.removeFromTop (20); // space for titles/spacing
+        powerButton.setBounds (bounds.removeFromTop (30).withSizeKeepingCentre (80, 25));
+        bounds.removeFromTop (10); // spacing
         
         const int knobWidth = 100;
         const int spacing = 20;
@@ -156,13 +169,16 @@ public:
     }
 
 private:
+    juce::ToggleButton powerButton;
     juce::Slider mixSlider, sizeSlider, dampSlider, widthSlider;
     juce::ComboBox typeSelector;
     juce::Label mixLabel, sizeLabel, dampLabel, widthLabel, typeLabel;
 
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
     using ComboBoxAttachment = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
+    using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
 
+    std::unique_ptr<ButtonAttachment> powerAttachment;
     std::unique_ptr<SliderAttachment> mixAttachment, sizeAttachment, dampAttachment, widthAttachment;
     std::unique_ptr<ComboBoxAttachment> typeAttachment;
 };
@@ -175,6 +191,10 @@ class DelayTab : public juce::Component
 public:
     DelayTab (juce::AudioProcessorValueTreeState& apvts)
     {
+        powerButton.setButtonText ("Power");
+        addAndMakeVisible (powerButton);
+        powerAttachment = std::make_unique<ButtonAttachment> (apvts, RnVDisto::Parameters::delayPowerID, powerButton);
+
         auto setupSlider = [this](juce::Slider& slider, juce::Label& label, const juce::String& text) 
         {
             slider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
@@ -198,7 +218,8 @@ public:
     void resized() override
     {
         auto bounds = getLocalBounds().reduced (20);
-        bounds.removeFromTop (20); // space for titles/spacing
+        powerButton.setBounds (bounds.removeFromTop (30).withSizeKeepingCentre (80, 25));
+        bounds.removeFromTop (10); // spacing
         
         const int knobWidth = 100;
         const int spacing = 20;
@@ -218,11 +239,14 @@ public:
     }
 
 private:
+    juce::ToggleButton powerButton;
     juce::Slider mixSlider, timeSlider, feedbackSlider;
     juce::Label mixLabel, timeLabel, feedbackLabel;
 
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
+    using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
 
+    std::unique_ptr<ButtonAttachment> powerAttachment;
     std::unique_ptr<SliderAttachment> mixAttachment, timeAttachment, feedbackAttachment;
 };
 
@@ -234,6 +258,10 @@ class GateTab : public juce::Component
 public:
     GateTab (juce::AudioProcessorValueTreeState& apvts)
     {
+        powerButton.setButtonText ("Power");
+        addAndMakeVisible (powerButton);
+        powerAttachment = std::make_unique<ButtonAttachment> (apvts, RnVDisto::Parameters::gatePowerID, powerButton);
+
         auto setupSlider = [this](juce::Slider& slider, juce::Label& label, const juce::String& text) 
         {
             slider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
@@ -257,7 +285,8 @@ public:
     void resized() override
     {
         auto bounds = getLocalBounds().reduced (20);
-        bounds.removeFromTop (20); // space for titles/spacing
+        powerButton.setBounds (bounds.removeFromTop (30).withSizeKeepingCentre (80, 25));
+        bounds.removeFromTop (10); // spacing
         
         const int knobWidth = 100;
         const int spacing = 20;
@@ -277,11 +306,14 @@ public:
     }
 
 private:
+    juce::ToggleButton powerButton;
     juce::Slider thresholdSlider, attackSlider, releaseSlider;
     juce::Label thresholdLabel, attackLabel, releaseLabel;
 
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
+    using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
 
+    std::unique_ptr<ButtonAttachment> powerAttachment;
     std::unique_ptr<SliderAttachment> thresholdAttachment, attackAttachment, releaseAttachment;
 };
 
@@ -359,8 +391,17 @@ RnVDistoAudioProcessorEditor::RnVDistoAudioProcessorEditor (RnVDistoAudioProcess
             });
     };
 
+    bypassButton.setButtonText ("Bypass");
+    addAndMakeVisible (bypassButton);
+    bypassAttachment = std::make_unique<ButtonAttachment> (audioProcessor.apvts, RnVDisto::Parameters::bypassID, bypassButton);
+
+    // Setup input channel selector
+    addAndMakeVisible (inputChannelSelector);
+    inputChannelSelector.addItemList ({"Input: Both", "Input: 1", "Input: 2"}, 1);
+    inputChannelAttachment = std::make_unique<ComboBoxAttachment> (audioProcessor.apvts, RnVDisto::Parameters::inputChannelModeID, inputChannelSelector);
+
     // Make the window wider to accommodate our tabs nicely
-    setSize (700, 420);
+    setSize (800, 420);
 }
 
 RnVDistoAudioProcessorEditor::~RnVDistoAudioProcessorEditor()
@@ -372,11 +413,10 @@ void RnVDistoAudioProcessorEditor::paint (juce::Graphics& g)
 {
     g.fillAll (juce::Colour::fromRGB (18, 18, 20));
 
-    // Draw the Header Title
+    // Draw the Header Title (positioned centrally in top bar)
     g.setColour (juce::Colours::white);
     g.setFont (juce::FontOptions (18.0f));
-    // Header takes top 50 pixels, drawing text in the middle area
-    g.drawText ("RnV Disto", 20, 10, 150, 30, juce::Justification::left, true);
+    g.drawText ("RnV Disto", 240, 10, 150, 30, juce::Justification::left, true);
 }
 
 void RnVDistoAudioProcessorEditor::resized()
@@ -385,6 +425,12 @@ void RnVDistoAudioProcessorEditor::resized()
     
     // Top Bar Layout
     auto topBar = bounds.removeFromTop (50);
+    
+    // Position Bypass button on the left of top bar
+    bypassButton.setBounds (topBar.removeFromLeft (100).reduced (5));
+    
+    // Position Input Channel Selector next to it
+    inputChannelSelector.setBounds (topBar.removeFromLeft (130).reduced (5));
     
     // Position Save/Load buttons and ComboBox on the right of top bar
     loadPresetButton.setBounds (topBar.removeFromRight (100).reduced (5));
