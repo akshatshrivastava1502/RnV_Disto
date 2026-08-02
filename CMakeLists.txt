@@ -17,6 +17,16 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(juce)
 
+# Fetch ASIO SDK on Windows for low-latency audio support
+if (WIN32)
+    FetchContent_Declare(
+        asio_sdk
+        GIT_REPOSITORY https://github.com/audiosdk/asio.git
+        GIT_TAG        main
+    )
+    FetchContent_MakeAvailable(asio_sdk)
+endif()
+
 # Define the JUCE Plugin Target
 juce_add_plugin(RnVDisto
     COMPANY_NAME "ProdByRnV"
@@ -32,6 +42,11 @@ target_compile_definitions(RnVDisto
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=0
 )
+
+if (WIN32)
+    target_compile_definitions(RnVDisto PRIVATE JUCE_ASIO=1)
+    target_include_directories(RnVDisto PRIVATE "${asio_sdk_SOURCE_DIR}/common")
+endif()
 
 # Target our source files
 target_sources(RnVDisto PRIVATE
