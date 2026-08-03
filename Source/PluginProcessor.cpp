@@ -117,11 +117,14 @@ void RnVDistoAudioProcessor::releaseResources()
 
 bool RnVDistoAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-    if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
-     && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
+    // We support mono or stereo input
+    auto inputSet = layouts.getMainInputChannelSet();
+    if (inputSet != juce::AudioChannelSet::mono() && inputSet != juce::AudioChannelSet::stereo())
         return false;
-    
-    if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
+
+    // We support mono or stereo output
+    auto outputSet = layouts.getMainOutputChannelSet();
+    if (outputSet != juce::AudioChannelSet::mono() && outputSet != juce::AudioChannelSet::stereo())
         return false;
 
     return true;
@@ -140,7 +143,12 @@ void RnVDistoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
 
     // --- Active Input Channel Selection Mode ---
     auto channelMode = static_cast<int> (inputChannelModeParam->load());
-    if (channelMode == 1) // Input 1 only (copy left to right)
+    if (totalNumInputChannels == 1 && totalNumOutputChannels == 2)
+    {
+        // If input is physically mono, always duplicate to right channel for stereo output
+        buffer.copyFrom (1, 0, buffer.getReadPointer (0), buffer.getNumSamples());
+    }
+    else if (channelMode == 1) // Input 1 only (copy left to right)
     {
         if (totalNumInputChannels >= 2)
             buffer.copyFrom (1, 0, buffer.getReadPointer (0), buffer.getNumSamples());
