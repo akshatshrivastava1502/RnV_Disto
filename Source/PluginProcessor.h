@@ -1,6 +1,7 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <map>
 #include <juce_dsp/juce_dsp.h>
 
 // --- Your Custom Architecture Includes ---
@@ -15,7 +16,7 @@
 
 // ... rest of your code
 
-class RnVDistoAudioProcessor  : public juce::AudioProcessor
+class RnVDistoAudioProcessor  : public juce::AudioProcessor, private juce::Timer
 {
 public:
     RnVDistoAudioProcessor();
@@ -105,6 +106,21 @@ private:
     std::atomic<float>* gateThresholdParam = nullptr;
     std::atomic<float>* gateAttackParam = nullptr;
     std::atomic<float>* gateReleaseParam = nullptr;
+
+    // --- Parameter Transitions / Animations ---
+    struct ParameterTransition
+    {
+        juce::RangedAudioParameter* parameter = nullptr;
+        float startValue = 0.0f;
+        float targetValue = 0.0f;
+    };
+    
+    std::vector<ParameterTransition> activeTransitions;
+    int transitionStep = 0;
+    const int transitionDurationSteps = 25; // 25 steps * 16ms = ~400ms transition
+    
+    void startParameterTransition (const std::map<juce::String, float>& targetValues);
+    void timerCallback() override;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RnVDistoAudioProcessor)
 };

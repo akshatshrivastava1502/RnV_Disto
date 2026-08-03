@@ -358,23 +358,26 @@ void RnVDistoAudioProcessor::loadPresetFromFile (const juce::File& file)
                 float reverbDecay = getFloatVal ("reverbDecay", 0.5f);
                 bool reverbActive = getBoolVal ("reverbActive", true);
 
-                setParamValue (RnVDisto::Parameters::inputGainID, parsedInputGain);
-                setParamValue (RnVDisto::Parameters::outputGainID, parsedOutputGain);
-                setParamValue (RnVDisto::Parameters::gateThresholdID, gateThreshold);
-                setParamValue (RnVDisto::Parameters::driveID, drive);
-                setParamValue ("tone", tone);
-                setParamValue (RnVDisto::Parameters::delayMixID, delayMix);
-                setParamValue (RnVDisto::Parameters::delayTimeID, delayTime);
-                setParamValue (RnVDisto::Parameters::delayFeedbackID, delayFeedback);
-                setParamValue (RnVDisto::Parameters::reverbMixID, reverbMix);
-                setParamValue (RnVDisto::Parameters::reverbSizeID, reverbDecay);
-
+                std::map<juce::String, float> targets;
+                targets[RnVDisto::Parameters::inputGainID] = parsedInputGain;
+                targets[RnVDisto::Parameters::outputGainID] = parsedOutputGain;
+                targets[RnVDisto::Parameters::gateThresholdID] = gateThreshold;
+                targets[RnVDisto::Parameters::driveID] = drive;
+                targets["tone"] = tone;
+                targets[RnVDisto::Parameters::delayMixID] = delayMix;
+                targets[RnVDisto::Parameters::delayTimeID] = delayTime;
+                targets[RnVDisto::Parameters::delayFeedbackID] = delayFeedback;
+                targets[RnVDisto::Parameters::reverbMixID] = reverbMix;
+                targets[RnVDisto::Parameters::reverbSizeID] = reverbDecay;
+ 
                 // Set power states
-                setParamValue (RnVDisto::Parameters::bypassID, 0.0f);
-                setParamValue (RnVDisto::Parameters::gatePowerID, gateActive ? 1.0f : 0.0f);
-                setParamValue (RnVDisto::Parameters::distortionPowerID, overdriveActive ? 1.0f : 0.0f);
-                setParamValue (RnVDisto::Parameters::delayPowerID, delayActive ? 1.0f : 0.0f);
-                setParamValue (RnVDisto::Parameters::reverbPowerID, reverbActive ? 1.0f : 0.0f);
+                targets[RnVDisto::Parameters::bypassID] = 0.0f;
+                targets[RnVDisto::Parameters::gatePowerID] = gateActive ? 1.0f : 0.0f;
+                targets[RnVDisto::Parameters::distortionPowerID] = overdriveActive ? 1.0f : 0.0f;
+                targets[RnVDisto::Parameters::delayPowerID] = delayActive ? 1.0f : 0.0f;
+                targets[RnVDisto::Parameters::reverbPowerID] = reverbActive ? 1.0f : 0.0f;
+
+                startParameterTransition (targets);
             }
         }
         return;
@@ -386,6 +389,7 @@ void RnVDistoAudioProcessor::loadPresetFromFile (const juce::File& file)
     
     if (jsonObj != nullptr)
     {
+        std::map<juce::String, float> targets;
         auto parameters = getParameters();
         for (auto* param : parameters)
         {
@@ -395,11 +399,12 @@ void RnVDistoAudioProcessor::loadPresetFromFile (const juce::File& file)
                 if (jsonObj->hasProperty (paramID))
                 {
                     float value = static_cast<float> (jsonObj->getProperty (paramID));
-                    float normalized = rangedParam->getNormalisableRange().convertTo0to1 (value);
-                    rangedParam->setValueNotifyingHost (normalized);
+                    targets[paramID] = value;
                 }
             }
         }
+        
+        startParameterTransition (targets);
     }
 }
 
@@ -452,4 +457,74 @@ juce::String RnVDistoAudioProcessor::getNeuralDspValue (const juce::MemoryBlock&
         }
     }
     return {};
+}
+
+void RnVDistoAudioProcessor::startParameterTransition (const std::map<juce::String, float>& targetValues)
+{
+    activeTransitions.clear();
+    
+    auto parameters = getParameters();
+    for (auto* param : parameters)
+    {
+        if (auto* rangedParam = dynamic_cast<juce::RangedAudioParameter*> (param))
+        {
+            auto paramID = rangedParam->getParameterID();
+            auto it = targetValues.find (paramID);
+            if (it != targetValues.end())
+            {
+                // We only animate continuous float parameters, not choices or booleans
+                if (dynamic_cast<juce::AudioParameterFloat*> (param) != nullptr)
+                {
+                    ParameterTransition transition;
+                    transition.parameter = rangedParam;
+                    // Start value in raw parameter units
+                    transition.startValue = rangedParam->getNormalisableRange().convertFrom0to1 (rangedParam->getValue());
+                    transition.targetValue = it->second;
+                    
+                    activeTransitions.push_back (transition);
+                }
+                else
+                {
+                    // Bool and Choice parameters change instantly
+                    float normalized = rangedParam->getNormalisableRange().convertTo0to1 (it->second);
+                    rangedParam->setValueNotifyingHost (normalized);
+                }
+            }
+        }
+    }
+    
+    if (!activeTransitions.empty())
+    {
+        transitionStep = 0;
+        startTimer (16); // ~60 FPS
+    }
+}
+
+void RnVDistoAudioProcessor::timerCallback()
+{
+    transitionStep++;
+    float t = static_cast<float> (transitionStep) / transitionDurationSteps;
+    
+    // Smooth step curve (ease in / ease out)
+    float smoothT = t * t * (3.0f - 2.0f * t);
+    
+    if (t >= 1.0f)
+    {
+        stopTimer();
+        for (auto& transition : activeTransitions)
+        {
+            float normalized = transition.parameter->getNormalisableRange().convertTo0to1 (transition.targetValue);
+            transition.parameter->setValueNotifyingHost (normalized);
+        }
+        activeTransitions.clear();
+    }
+    else
+    {
+        for (auto& transition : activeTransitions)
+        {
+            float current = transition.startValue + (transition.targetValue - transition.startValue) * smoothT;
+            float normalized = transition.parameter->getNormalisableRange().convertTo0to1 (current);
+            transition.parameter->setValueNotifyingHost (normalized);
+        }
+    }
 }
