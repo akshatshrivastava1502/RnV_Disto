@@ -426,7 +426,7 @@ void RnVDistoAudioProcessorEditor::paint (juce::Graphics& g)
     // Draw the Header Title (positioned centrally in top bar)
     g.setColour (juce::Colours::white);
     g.setFont (juce::FontOptions (18.0f));
-    g.drawText ("RnV Disto", 240, 10, 150, 30, juce::Justification::left, true);
+    g.drawText ("RnV Disto", 280, 10, 120, 30, juce::Justification::centred, true);
 }
 
 void RnVDistoAudioProcessorEditor::resized()
@@ -437,7 +437,7 @@ void RnVDistoAudioProcessorEditor::resized()
     auto topBar = bounds.removeFromTop (50);
     
     // Position Bypass button on the left of top bar
-    bypassButton.setBounds (topBar.removeFromLeft (100).reduced (5));
+    bypassButton.setBounds (topBar.removeFromLeft (150).reduced (5));
     
     // Position Input Channel Selector next to it
     inputChannelSelector.setBounds (topBar.removeFromLeft (130).reduced (5));

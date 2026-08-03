@@ -61,8 +61,13 @@ public:
             // We create a rotation transform around the center of the knob
             auto transform = juce::AffineTransform::rotation (angle, centreX, centreY);
 
-            // Draw the knob cap with rotation transform applied
+            // Draw the knob cap with circular mask and rotation transform applied
             g.saveState();
+            
+            juce::Path clipPath;
+            clipPath.addEllipse (capRect);
+            g.reduceClipRegion (clipPath);
+            
             g.addTransform (transform);
             g.drawImageWithin (knobImg, 
                               static_cast<int> (capRect.getX()), 
