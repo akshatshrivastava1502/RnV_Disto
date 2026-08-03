@@ -55,7 +55,7 @@ public:
         const int knobWidth = 100;
         const int spacing = 15;
 
-        auto knobRow = bounds.removeFromTop (130);
+        auto knobRow = bounds.removeFromTop (130).withSizeKeepingCentre (560, 130);
         
         inputGainSlider.setBounds (knobRow.removeFromLeft (knobWidth));
         inputLabel.setBounds (inputGainSlider.getBounds().translated (0, -20).withHeight (20));
