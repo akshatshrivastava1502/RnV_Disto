@@ -1,5 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "BinaryData.h"
 
 // ==============================================================================
 // Distortion Tab Component
@@ -411,7 +412,16 @@ RnVDistoAudioProcessorEditor::~RnVDistoAudioProcessorEditor()
 
 void RnVDistoAudioProcessorEditor::paint (juce::Graphics& g)
 {
-    g.fillAll (juce::Colour::fromRGB (18, 18, 20));
+    auto bgImg = juce::ImageCache::getFromMemory (BinaryData::panel_background_jpg, BinaryData::panel_background_jpgSize);
+    
+    if (bgImg.isValid())
+    {
+        g.drawImageWithin (bgImg, 0, 0, getWidth(), getHeight(), juce::RectanglePlacement::stretchToFit, false);
+    }
+    else
+    {
+        g.fillAll (juce::Colour::fromRGB (18, 18, 20));
+    }
 
     // Draw the Header Title (positioned centrally in top bar)
     g.setColour (juce::Colours::white);

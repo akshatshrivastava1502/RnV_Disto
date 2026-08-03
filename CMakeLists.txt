@@ -48,6 +48,13 @@ if (WIN32)
     target_include_directories(RnVDisto PRIVATE "${asio_sdk_SOURCE_DIR}/common")
 endif()
 
+# Binary assets bundle
+juce_add_binary_data(RnVDistoAssets
+    SOURCES
+        Assets/panel_background.jpg
+        Assets/knob_cap.jpg
+)
+
 # Target our source files
 target_sources(RnVDisto PRIVATE
     Source/PluginProcessor.h
@@ -64,6 +71,7 @@ target_link_libraries(RnVDisto
     PRIVATE
         juce::juce_audio_utils
         juce::juce_dsp           # <-- Add this crucial line
+        RnVDistoAssets
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_warning_flags)
