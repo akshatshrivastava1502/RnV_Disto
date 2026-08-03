@@ -53,6 +53,10 @@ juce_add_binary_data(RnVDistoAssets
     SOURCES
         Assets/panel_background.jpg
         Assets/knob_cap.jpg
+        Assets/switch_on.jpg
+        Assets/switch_off.jpg
+        Assets/led_on.jpg
+        Assets/led_off.jpg
 )
 
 # Target our source files

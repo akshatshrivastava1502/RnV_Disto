@@ -84,6 +84,68 @@ public:
             g.fillEllipse (rx + 4.0f, ry + 4.0f, rw - 8.0f, rw - 8.0f);
         }
     }
+
+    void drawToggleButton (juce::Graphics& g, juce::ToggleButton& button,
+                           bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
+    {
+        juce::ignoreUnused (shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
+
+        auto switchOnImg  = juce::ImageCache::getFromMemory (BinaryData::switch_on_jpg, BinaryData::switch_on_jpgSize);
+        auto switchOffImg = juce::ImageCache::getFromMemory (BinaryData::switch_off_jpg, BinaryData::switch_off_jpgSize);
+        auto ledOnImg     = juce::ImageCache::getFromMemory (BinaryData::led_on_jpg, BinaryData::led_on_jpgSize);
+        auto ledOffImg    = juce::ImageCache::getFromMemory (BinaryData::led_off_jpg, BinaryData::led_off_jpgSize);
+
+        auto bounds = button.getLocalBounds().toFloat();
+        bool isToggled = button.getToggleState();
+        
+        // Bypass logic inversion
+        bool isBypass = button.getButtonText().equalsIgnoreCase ("Bypass");
+        bool isLedActive = isBypass ? !isToggled : isToggled;
+
+        auto& activeSwitch = isToggled ? switchOnImg : switchOffImg;
+        auto& activeLed = isLedActive ? ledOnImg : ledOffImg;
+
+        if (activeSwitch.isValid() && activeLed.isValid())
+        {
+            auto size = juce::jmin (bounds.getWidth(), bounds.getHeight()) - 4.0f;
+            auto switchRect = juce::Rectangle<float> (bounds.getX() + 2.0f, bounds.getCentreY() - size / 2.0f, size, size);
+
+            // Draw switch
+            g.drawImageWithin (activeSwitch, 
+                              static_cast<int> (switchRect.getX()), 
+                              static_cast<int> (switchRect.getY()), 
+                              static_cast<int> (switchRect.getWidth()), 
+                              static_cast<int> (switchRect.getHeight()), 
+                              juce::RectanglePlacement::centred, 
+                              false);
+
+            // Draw LED indicator (slightly smaller than switch)
+            auto ledSize = size * 0.6f;
+            auto ledRect = juce::Rectangle<float> (switchRect.getRight() + 6.0f, bounds.getCentreY() - ledSize / 2.0f, ledSize, ledSize);
+            g.drawImageWithin (activeLed, 
+                              static_cast<int> (ledRect.getX()), 
+                              static_cast<int> (ledRect.getY()), 
+                              static_cast<int> (ledRect.getWidth()), 
+                              static_cast<int> (ledRect.getHeight()), 
+                              juce::RectanglePlacement::centred, 
+                              false);
+
+            // Draw label
+            g.setColour (juce::Colours::white);
+            g.setFont (juce::FontOptions (13.0f));
+            auto textRect = bounds.withTrimmedLeft (switchRect.getWidth() + ledSize + 14.0f);
+            g.drawText (button.getButtonText(), textRect, juce::Justification::centredLeft, true);
+        }
+        else
+        {
+            g.setColour (isToggled ? juce::Colour::fromRGB (255, 110, 0) : juce::Colours::grey);
+            g.fillEllipse (bounds.getX() + 2.0f, bounds.getCentreY() - 8.0f, 16.0f, 16.0f);
+            
+            g.setColour (juce::Colours::white);
+            g.setFont (juce::FontOptions (13.0f));
+            g.drawText (button.getButtonText(), bounds.withTrimmedLeft (24.0f), juce::Justification::centredLeft, true);
+        }
+    }
 };
 
 } // namespace GUI
