@@ -38,6 +38,7 @@ namespace DSP
 
         void process (const juce::dsp::ProcessContextReplacing<float>& context)
         {
+<<<<<<< HEAD
             auto& block = context.getOutputBlock(); // Processing in-place
             const int numChannels = static_cast<int> (block.getNumChannels());
             const int numSamples = static_cast<int> (block.getNumSamples());
@@ -58,6 +59,35 @@ namespace DSP
 
                     // Write the new value (input + feedback) into the delay line for the next iteration
                     delayLine.pushSample (channel, inputSample + (delayedSample * feedback));
+=======
+            auto& inputBlock = context.getInputBlock();
+            auto& outputBlock = context.getOutputBlock();
+            
+            const int numChannels = static_cast<int> (inputBlock.getNumChannels());
+            const int numSamples = static_cast<int> (inputBlock.getNumSamples());
+
+            for (int sample = 0; sample < numSamples; ++sample)
+            {
+                for (int channel = 0; channel < numChannels; ++channel)
+                {
+                    float inputSample = inputBlock.getSample (channel, sample);
+                    
+                    // Read delayed sample without advancing pointer
+                    float delayedSample = delayLine.popSample (channel, -1.0f, false);
+                    
+                    // Write input + feedback into delay line
+                    float inputToDelay = inputSample + (delayedSample * feedback);
+                    
+                    // Push into delay line
+                    delayLine.pushSample (channel, inputToDelay);
+                    
+                    // Advance pointer and pop final wet sample
+                    float finalWet = delayLine.popSample (channel, -1.0f, true);
+                    
+                    // Blend wet/dry
+                    float outputSample = (inputSample * (1.0f - mix)) + (finalWet * mix);
+                    outputBlock.setSample (channel, sample, outputSample);
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
                 }
             }
         }

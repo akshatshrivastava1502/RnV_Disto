@@ -1,6 +1,9 @@
 #pragma once
 #include <juce_gui_basics/juce_gui_basics.h>
+<<<<<<< HEAD
 #include "BinaryData.h"
+=======
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
 
 namespace Othrys
 {
@@ -23,11 +26,18 @@ public:
     {
         juce::ignoreUnused (slider);
 
+<<<<<<< HEAD
         // Load knob cap image
         auto knobImg = juce::ImageCache::getFromMemory (BinaryData::knob_cap_jpg, BinaryData::knob_cap_jpgSize);
 
         // Calculate the bounding box and center points
         auto bounds = juce::Rectangle<int> (x, y, width, height).toFloat();
+=======
+        // Calculate the bounding box and center points
+        auto bounds = juce::Rectangle<int> (x, y, width, height).toFloat();
+
+        // We shrink the radius slightly so the thick strokes don't clip outside the bounds
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
         auto radius = juce::jmin (bounds.getWidth(), bounds.getHeight()) / 2.0f - 4.0f;
         auto centreX = bounds.getCentreX();
         auto centreY = bounds.getCentreY();
@@ -40,13 +50,18 @@ public:
         juce::Path backgroundArc;
         backgroundArc.addCentredArc (centreX, centreY, radius, radius, 0.0f, rotaryStartAngle, rotaryEndAngle, true);
         g.setColour (juce::Colour::fromRGB (40, 40, 45)); // Deep grey track
+<<<<<<< HEAD
         g.strokePath (backgroundArc, juce::PathStrokeType (4.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+=======
+        g.strokePath (backgroundArc, juce::PathStrokeType (5.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
 
         // --- 2. Draw the Active Value Fill ---
         if (sliderPos > 0.0f)
         {
             juce::Path fillArc;
             fillArc.addCentredArc (centreX, centreY, radius, radius, 0.0f, rotaryStartAngle, angle, true);
+<<<<<<< HEAD
             g.setColour (juce::Colour::fromRGB (255, 110, 0)); // Glowing orange fill
             g.strokePath (fillArc, juce::PathStrokeType (4.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
         }
@@ -150,6 +165,31 @@ public:
             g.setFont (juce::FontOptions (13.0f));
             g.drawText (button.getButtonText(), bounds.withTrimmedLeft (24.0f), juce::Justification::centredLeft, true);
         }
+=======
+            // Premium "Neon Orange" accent color for the active value
+            g.setColour (juce::Colour::fromRGB (255, 85, 0));
+            g.strokePath (fillArc, juce::PathStrokeType (5.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+        }
+
+        // --- 3. Draw the Inner Knob Body ---
+        g.setColour (juce::Colour::fromRGB (20, 20, 23)); // Dark inner circle
+        g.fillEllipse (rx + 4.0f, ry + 4.0f, rw - 8.0f, rw - 8.0f);
+
+        // Add a subtle metallic outline for depth
+        g.setColour (juce::Colour::fromRGB (70, 70, 75));
+        g.drawEllipse (rx + 4.0f, ry + 4.0f, rw - 8.0f, rw - 8.0f, 1.5f);
+
+        // --- 4. Draw the Pointer ---
+        juce::Path pointer;
+        auto pointerLength = radius * 0.4f;
+        auto pointerThickness = 3.0f;
+        pointer.addRectangle (-pointerThickness * 0.5f, -radius + 6.0f, pointerThickness, pointerLength);
+
+        // Rotate the pointer to match the current value angle
+        pointer.applyTransform (juce::AffineTransform::rotation (angle).translated (centreX, centreY));
+        g.setColour (juce::Colours::white);
+        g.fillPath (pointer);
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
     }
 };
 

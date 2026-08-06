@@ -12,6 +12,18 @@ namespace Parameters
     const juce::String mixID        = "mix";
     const juce::String typeID       = "type";
 
+<<<<<<< HEAD
+=======
+    // Dynamic Saturation IDs 
+    const juce::String dynDepthID   = "dyn_depth";
+    const juce::String dynAttackID  = "dyn_attack";
+    const juce::String dynReleaseID = "dyn_release";
+
+    // Filter IDs (NEW for Phase 4)
+    const juce::String hpfCutoffID  = "hpf_cutoff";
+    const juce::String lpfCutoffID  = "lpf_cutoff";
+
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
     // Reverb IDs
     const juce::String reverbTypeID  = "reverb_type";
     const juce::String reverbMixID   = "reverb_mix";
@@ -31,6 +43,7 @@ namespace Parameters
     const juce::String delayPowerID      = "delay_power";
     const juce::String gatePowerID       = "gate_power";
 
+<<<<<<< HEAD
     // EQ IDs
     const juce::String eqPowerID   = "eq_power";
     const juce::String eqHpfFreqID = "eq_hpf_freq";
@@ -44,6 +57,8 @@ namespace Parameters
     const juce::String eqBand4kHzID   = "eq_band_4khz";
     const juce::String eqBand8kHzID   = "eq_band_8khz";
     const juce::String eqBand16kHzID  = "eq_band_16khz";
+=======
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
     // Channel Selection ID
     const juce::String inputChannelModeID = "input_channel_mode";
 
@@ -66,6 +81,7 @@ namespace Parameters
         // Power parameters
         params.push_back (std::make_unique<juce::AudioParameterBool> (
             juce::ParameterID (bypassID, 1), "Bypass", false));
+<<<<<<< HEAD
 
         params.push_back (std::make_unique<juce::AudioParameterBool> (
             juce::ParameterID (distortionPowerID, 1), "Distortion Power", true));
@@ -129,6 +145,17 @@ namespace Parameters
             juce::ParameterID (eqBand16kHzID, 1), "EQ 16kHz Gain",
             juce::NormalisableRange<float> (-12.0f, 12.0f, 0.1f), 0.0f));
 
+=======
+        params.push_back (std::make_unique<juce::AudioParameterBool> (
+            juce::ParameterID (distortionPowerID, 1), "Distortion Power", true));
+        params.push_back (std::make_unique<juce::AudioParameterBool> (
+            juce::ParameterID (reverbPowerID, 1), "Reverb Power", true));
+        params.push_back (std::make_unique<juce::AudioParameterBool> (
+            juce::ParameterID (delayPowerID, 1), "Delay Power", true));
+        params.push_back (std::make_unique<juce::AudioParameterBool> (
+            juce::ParameterID (gatePowerID, 1), "Gate Power", true));
+
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
         // Input Channel Selection parameter
         juce::StringArray inputChannelModes = { "Both", "1", "2" };
         params.push_back (std::make_unique<juce::AudioParameterChoice> (
@@ -143,6 +170,7 @@ namespace Parameters
             juce::ParameterID (driveID, 1), driveName,
             juce::NormalisableRange<float> (0.0f, 100.0f, 0.1f), 0.0f));
 
+<<<<<<< HEAD
         juce::StringArray distortionTypes = { "Soft Clip", "Hard Clip", "Foldback", "Tube", "Tape" };
         params.push_back (std::make_unique<juce::AudioParameterChoice> (
             juce::ParameterID (typeID, 1), typeName, distortionTypes, 0));
@@ -150,6 +178,29 @@ namespace Parameters
         params.push_back (std::make_unique<juce::AudioParameterFloat> (
             juce::ParameterID ("tone", 1), "Tone",
             juce::NormalisableRange<float> (-1.0f, 1.0f, 0.01f), 0.0f));
+=======
+        juce::StringArray distortionTypes = { "Soft Clip", "Hard Clip", "Foldback", "Tube", "Tape", "Transistor", "Custom" };
+        params.push_back (std::make_unique<juce::AudioParameterChoice> (
+            juce::ParameterID (typeID, 1), typeName, distortionTypes, 0));
+
+        // --- TONE & FILTER SECTION (Phase 4 Updates) ---
+        params.push_back (std::make_unique<juce::AudioParameterFloat> (
+            juce::ParameterID ("tone", 1), "Tone",
+            juce::NormalisableRange<float> (0.0f, 1.0f, 0.01f), 0.5f));
+
+        // HPF Range: 20Hz to 2000Hz. Skewed so 200Hz is in the center of the knob.
+        juce::NormalisableRange<float> hpfRange (20.0f, 2000.0f, 1.0f);
+        hpfRange.setSkewForCentre (200.0f);
+        params.push_back (std::make_unique<juce::AudioParameterFloat> (
+            juce::ParameterID (hpfCutoffID, 1), "HPF Frequency", hpfRange, 20.0f));
+
+        // LPF Range: 200Hz to 20000Hz. Skewed so 5000Hz is in the center of the knob.
+        juce::NormalisableRange<float> lpfRange (200.0f, 20000.0f, 1.0f);
+        lpfRange.setSkewForCentre (5000.0f);
+        params.push_back (std::make_unique<juce::AudioParameterFloat> (
+            juce::ParameterID (lpfCutoffID, 1), "LPF Frequency", lpfRange, 20000.0f));
+        // -----------------------------------------------
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
 
         params.push_back (std::make_unique<juce::AudioParameterFloat> (
             juce::ParameterID (outputGainID, 1), outputGainName,
@@ -159,10 +210,25 @@ namespace Parameters
             juce::ParameterID (mixID, 1), mixName,
             juce::NormalisableRange<float> (0.0f, 100.0f, 1.0f), 100.0f));
 
+<<<<<<< HEAD
+=======
+        // Dynamic Saturation Parameters
+        params.push_back (std::make_unique<juce::AudioParameterFloat> (
+            juce::ParameterID (dynDepthID, 1), "Dynamic Depth",
+            juce::NormalisableRange<float> (-100.0f, 100.0f, 1.0f), 0.0f));
+        params.push_back (std::make_unique<juce::AudioParameterFloat> (
+            juce::ParameterID (dynAttackID, 1), "Dynamic Attack",
+            juce::NormalisableRange<float> (0.1f, 100.0f, 0.1f), 5.0f));
+        params.push_back (std::make_unique<juce::AudioParameterFloat> (
+            juce::ParameterID (dynReleaseID, 1), "Dynamic Release",
+            juce::NormalisableRange<float> (10.0f, 1000.0f, 1.0f), 100.0f));
+
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
         // Reverb parameters
         juce::StringArray reverbTypes = { "Room", "Hall" };
         params.push_back (std::make_unique<juce::AudioParameterChoice> (
             juce::ParameterID (reverbTypeID, 1), "Reverb Type", reverbTypes, 0));
+<<<<<<< HEAD
 
         params.push_back (std::make_unique<juce::AudioParameterFloat> (
             juce::ParameterID (reverbMixID, 1), "Reverb Mix",
@@ -176,6 +242,17 @@ namespace Parameters
             juce::ParameterID (reverbDampID, 1), "Reverb Damping",
             juce::NormalisableRange<float> (0.0f, 1.0f, 0.01f), 0.3f));
 
+=======
+        params.push_back (std::make_unique<juce::AudioParameterFloat> (
+            juce::ParameterID (reverbMixID, 1), "Reverb Mix",
+            juce::NormalisableRange<float> (0.0f, 100.0f, 1.0f), 0.0f));
+        params.push_back (std::make_unique<juce::AudioParameterFloat> (
+            juce::ParameterID (reverbSizeID, 1), "Reverb Size",
+            juce::NormalisableRange<float> (0.0f, 1.0f, 0.01f), 0.5f));
+        params.push_back (std::make_unique<juce::AudioParameterFloat> (
+            juce::ParameterID (reverbDampID, 1), "Reverb Damping",
+            juce::NormalisableRange<float> (0.0f, 1.0f, 0.01f), 0.3f));
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
         params.push_back (std::make_unique<juce::AudioParameterFloat> (
             juce::ParameterID (reverbWidthID, 1), "Reverb Width",
             juce::NormalisableRange<float> (0.0f, 1.0f, 0.01f), 0.5f));
@@ -184,11 +261,17 @@ namespace Parameters
         params.push_back (std::make_unique<juce::AudioParameterFloat> (
             juce::ParameterID (delayMixID, 1), "Delay Mix",
             juce::NormalisableRange<float> (0.0f, 100.0f, 1.0f), 0.0f));
+<<<<<<< HEAD
 
         params.push_back (std::make_unique<juce::AudioParameterFloat> (
             juce::ParameterID (delayTimeID, 1), "Delay Time",
             juce::NormalisableRange<float> (1.0f, 2000.0f, 1.0f), 300.0f));
 
+=======
+        params.push_back (std::make_unique<juce::AudioParameterFloat> (
+            juce::ParameterID (delayTimeID, 1), "Delay Time",
+            juce::NormalisableRange<float> (1.0f, 2000.0f, 1.0f), 300.0f));
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
         params.push_back (std::make_unique<juce::AudioParameterFloat> (
             juce::ParameterID (delayFeedbackID, 1), "Delay Feedback",
             juce::NormalisableRange<float> (0.0f, 95.0f, 1.0f), 30.0f));
@@ -197,11 +280,17 @@ namespace Parameters
         params.push_back (std::make_unique<juce::AudioParameterFloat> (
             juce::ParameterID (gateThresholdID, 1), "Gate Threshold",
             juce::NormalisableRange<float> (-100.0f, 0.0f, 0.1f), -80.0f));
+<<<<<<< HEAD
 
         params.push_back (std::make_unique<juce::AudioParameterFloat> (
             juce::ParameterID (gateAttackID, 1), "Gate Attack",
             juce::NormalisableRange<float> (0.1f, 100.0f, 0.1f), 1.0f));
 
+=======
+        params.push_back (std::make_unique<juce::AudioParameterFloat> (
+            juce::ParameterID (gateAttackID, 1), "Gate Attack",
+            juce::NormalisableRange<float> (0.1f, 100.0f, 0.1f), 1.0f));
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
         params.push_back (std::make_unique<juce::AudioParameterFloat> (
             juce::ParameterID (gateReleaseID, 1), "Gate Release",
             juce::NormalisableRange<float> (10.0f, 1000.0f, 1.0f), 100.0f));

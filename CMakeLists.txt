@@ -36,6 +36,11 @@ juce_add_plugin(Othrys
     PRODUCT_NAME "Othrys"
 )
 
+<<<<<<< HEAD
+=======
+juce_generate_juce_header(Othrys)
+
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
 target_compile_definitions(Othrys
     PUBLIC
         JUCE_VST3_CAN_REPLACE_VST2=0
@@ -48,6 +53,7 @@ if (WIN32)
     target_include_directories(Othrys PRIVATE "${asio_sdk_SOURCE_DIR}/common")
 endif()
 
+<<<<<<< HEAD
 # Binary assets bundle
 juce_add_binary_data(OthrysAssets
     SOURCES
@@ -59,6 +65,8 @@ juce_add_binary_data(OthrysAssets
         Assets/led_off.jpg
 )
 
+=======
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
 # Target our source files
 target_sources(Othrys PRIVATE
     Source/PluginProcessor.h
@@ -75,7 +83,10 @@ target_link_libraries(Othrys
     PRIVATE
         juce::juce_audio_utils
         juce::juce_dsp           # <-- Add this crucial line
+<<<<<<< HEAD
         OthrysAssets
+=======
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_warning_flags)
@@ -85,6 +96,7 @@ if (MSVC)
     target_compile_options(Othrys PRIVATE /W4 /WX)
 else()
     target_compile_options(Othrys PRIVATE -Wall -Wextra -Werror)
+<<<<<<< HEAD
 endif()
 
 # Post-build step to copy the standalone executable to the project root for convenience.
@@ -97,4 +109,6 @@ if(WIN32)
             "${PROJECT_SOURCE_DIR}/$<TARGET_FILE_NAME:Othrys_Standalone>"
         COMMENT "Copying Standalone .exe to project root..."
     )
+=======
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
 endif()

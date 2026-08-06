@@ -1,5 +1,6 @@
 #pragma once
 
+<<<<<<< HEAD
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <map>
 #include <juce_dsp/juce_dsp.h>
@@ -18,6 +19,19 @@
 // ... rest of your code
 
 class OthrysAudioProcessor  : public juce::AudioProcessor, private juce::Timer
+=======
+// Must be included BEFORE you declare any JUCE classes
+#include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_dsp/juce_dsp.h>
+#include <juce_gui_basics/juce_gui_basics.h>
+
+#include "DSP/DCBlocker.h"
+#include "DSP/NoiseGate.h"
+#include "DSP/Distortion.h"
+#include "DSP/ToneStack.h"
+
+class OthrysAudioProcessor : public juce::AudioProcessor
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
 {
 public:
     OthrysAudioProcessor();
@@ -47,6 +61,7 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+<<<<<<< HEAD
     // Preset save/load helpers
     void savePresetToFile (const juce::File& file);
     void loadPresetFromFile (const juce::File& file);
@@ -137,6 +152,43 @@ private:
     
     void startParameterTransition (const std::map<juce::String, float>& targetValues);
     void timerCallback() override;
+=======
+    // --- PRESET MANAGEMENT ---
+    // Moved to PUBLIC scope so PluginEditor can access them
+    void savePresetToFile(const juce::String& presetName);
+    void loadPresetFromFile(const juce::File& presetFile);
+    juce::File getPresetsFolder();
+    juce::Array<juce::File> getPresetFiles();
+
+    // --- APVTS ---
+    // Declared here to fix the "undeclared identifier" error in the .cpp
+    juce::AudioProcessorValueTreeState apvts;
+
+private:
+    juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
+
+    // --- DSP MODULES ---
+    Othrys::DSP::DCBlocker dcBlocker;
+    Othrys::DSP::NoiseGate noiseGate;
+    Othrys::DSP::Distortion distortion;
+    Othrys::DSP::ToneStack toneStack;
+    juce::dsp::DryWetMixer<float> dryWetMixer;
+
+    // --- OVERSAMPLING ---
+    // Instantiated directly to avoid missing initialization list errors. 
+    // Arguments: 2 Channels, Factor 1 (2x Oversampling), IIR Filter, Phase Compensated = true
+    juce::dsp::Oversampling<float> oversampler { 2, 1, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true };
+
+    // --- ATOMIC POINTERS ---
+    // Used to safely read parameter values on the audio thread without locking
+    std::atomic<float>* inputGainParam = nullptr;
+    std::atomic<float>* driveParam = nullptr;
+    std::atomic<float>* toneParam = nullptr;
+    std::atomic<float>* hpfCutoffParam = nullptr;
+    std::atomic<float>* lpfCutoffParam = nullptr;
+    std::atomic<float>* outputGainParam = nullptr;
+    std::atomic<float>* dryWetParam = nullptr;
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OthrysAudioProcessor)
 };

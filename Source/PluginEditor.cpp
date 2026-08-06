@@ -1,5 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+<<<<<<< HEAD
 #include "BinaryData.h"
 
 namespace
@@ -34,6 +35,10 @@ void setupVerticalSlider (juce::Component& owner,
     owner.addAndMakeVisible (label);
 }
 } // namespace
+=======
+#include "Parameters/ParameterDefines.h"
+
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
 // ==============================================================================
 // Distortion Tab Component
 // ==============================================================================
@@ -46,11 +51,30 @@ public:
         addAndMakeVisible (powerButton);
         powerAttachment = std::make_unique<ButtonAttachment> (apvts, Othrys::Parameters::distortionPowerID, powerButton);
 
+<<<<<<< HEAD
         setupRotarySlider (*this, inputGainSlider, inputLabel, "Input Gain");
         setupRotarySlider (*this, driveSlider, driveLabel, "Drive");
         setupRotarySlider (*this, toneSlider, toneLabel, "Tone");
         setupRotarySlider (*this, outputGainSlider, outputLabel, "Output Gain");
         setupRotarySlider (*this, mixSlider, mixLabel, "Mix");
+=======
+        auto setupSlider = [this](juce::Slider& slider, juce::Label& label, const juce::String& text) 
+        {
+            slider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+            slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 70, 20);
+            addAndMakeVisible (slider);
+
+            label.setText (text, juce::dontSendNotification);
+            label.setJustificationType (juce::Justification::centred);
+            addAndMakeVisible (label);
+        };
+
+        setupSlider (inputGainSlider, inputLabel, "Input Gain");
+        setupSlider (driveSlider, driveLabel, "Drive");
+        setupSlider (toneSlider, toneLabel, "Tone");
+        setupSlider (outputGainSlider, outputLabel, "Output Gain");
+        setupSlider (mixSlider, mixLabel, "Mix");
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
 
         addAndMakeVisible (typeSelector);
         typeSelector.addItemList ({"Soft Clip", "Hard Clip", "Foldback", "Tube", "Tape"}, 1);
@@ -76,7 +100,11 @@ public:
         const int knobWidth = 100;
         const int spacing = 15;
 
+<<<<<<< HEAD
         auto knobRow = bounds.removeFromTop (130).withSizeKeepingCentre (560, 130);
+=======
+        auto knobRow = bounds.removeFromTop (130);
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
         
         inputGainSlider.setBounds (knobRow.removeFromLeft (knobWidth));
         inputLabel.setBounds (inputGainSlider.getBounds().translated (0, -20).withHeight (20));
@@ -129,10 +157,28 @@ public:
         addAndMakeVisible (powerButton);
         powerAttachment = std::make_unique<ButtonAttachment> (apvts, Othrys::Parameters::reverbPowerID, powerButton);
 
+<<<<<<< HEAD
         setupRotarySlider (*this, mixSlider, mixLabel, "Mix");
         setupRotarySlider (*this, sizeSlider, sizeLabel, "Size");
         setupRotarySlider (*this, dampSlider, dampLabel, "Damping");
         setupRotarySlider (*this, widthSlider, widthLabel, "Width");
+=======
+        auto setupSlider = [this](juce::Slider& slider, juce::Label& label, const juce::String& text) 
+        {
+            slider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+            slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 70, 20);
+            addAndMakeVisible (slider);
+
+            label.setText (text, juce::dontSendNotification);
+            label.setJustificationType (juce::Justification::centred);
+            addAndMakeVisible (label);
+        };
+
+        setupSlider (mixSlider, mixLabel, "Mix");
+        setupSlider (sizeSlider, sizeLabel, "Size");
+        setupSlider (dampSlider, dampLabel, "Damping");
+        setupSlider (widthSlider, widthLabel, "Width");
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
 
         addAndMakeVisible (typeSelector);
         typeSelector.addItemList ({"Room", "Hall"}, 1);
@@ -206,9 +252,26 @@ public:
         addAndMakeVisible (powerButton);
         powerAttachment = std::make_unique<ButtonAttachment> (apvts, Othrys::Parameters::delayPowerID, powerButton);
 
+<<<<<<< HEAD
         setupRotarySlider (*this, mixSlider, mixLabel, "Mix");
         setupRotarySlider (*this, timeSlider, timeLabel, "Time (ms)");
         setupRotarySlider (*this, feedbackSlider, feedbackLabel, "Feedback");
+=======
+        auto setupSlider = [this](juce::Slider& slider, juce::Label& label, const juce::String& text) 
+        {
+            slider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+            slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 70, 20);
+            addAndMakeVisible (slider);
+
+            label.setText (text, juce::dontSendNotification);
+            label.setJustificationType (juce::Justification::centred);
+            addAndMakeVisible (label);
+        };
+
+        setupSlider (mixSlider, mixLabel, "Mix");
+        setupSlider (timeSlider, timeLabel, "Time (ms)");
+        setupSlider (feedbackSlider, feedbackLabel, "Feedback");
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
 
         mixAttachment      = std::make_unique<SliderAttachment> (apvts, Othrys::Parameters::delayMixID, mixSlider);
         timeAttachment     = std::make_unique<SliderAttachment> (apvts, Othrys::Parameters::delayTimeID, timeSlider);
@@ -262,9 +325,26 @@ public:
         addAndMakeVisible (powerButton);
         powerAttachment = std::make_unique<ButtonAttachment> (apvts, Othrys::Parameters::gatePowerID, powerButton);
 
+<<<<<<< HEAD
         setupRotarySlider (*this, thresholdSlider, thresholdLabel, "Threshold (dB)");
         setupRotarySlider (*this, attackSlider, attackLabel, "Attack (ms)");
         setupRotarySlider (*this, releaseSlider, releaseLabel, "Release (ms)");
+=======
+        auto setupSlider = [this](juce::Slider& slider, juce::Label& label, const juce::String& text) 
+        {
+            slider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+            slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 70, 20);
+            addAndMakeVisible (slider);
+
+            label.setText (text, juce::dontSendNotification);
+            label.setJustificationType (juce::Justification::centred);
+            addAndMakeVisible (label);
+        };
+
+        setupSlider (thresholdSlider, thresholdLabel, "Threshold (dB)");
+        setupSlider (attackSlider, attackLabel, "Attack (ms)");
+        setupSlider (releaseSlider, releaseLabel, "Release (ms)");
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
 
         thresholdAttachment = std::make_unique<SliderAttachment> (apvts, Othrys::Parameters::gateThresholdID, thresholdSlider);
         attackAttachment    = std::make_unique<SliderAttachment> (apvts, Othrys::Parameters::gateAttackID, attackSlider);
@@ -307,6 +387,7 @@ private:
 };
 
 // ==============================================================================
+<<<<<<< HEAD
 // EQ Tab Component
 // ==============================================================================
 class EQTab : public juce::Component
@@ -425,6 +506,8 @@ private:
 };
 
 // ==============================================================================
+=======
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
 // OthrysAudioProcessorEditor Implementation
 // ==============================================================================
 OthrysAudioProcessorEditor::OthrysAudioProcessorEditor (OthrysAudioProcessor& p)
@@ -437,7 +520,10 @@ OthrysAudioProcessorEditor::OthrysAudioProcessorEditor (OthrysAudioProcessor& p)
     tabs.addTab ("Reverb", juce::Colours::transparentBlack, new ReverbTab (audioProcessor.apvts), true);
     tabs.addTab ("Delay", juce::Colours::transparentBlack, new DelayTab (audioProcessor.apvts), true);
     tabs.addTab ("Gate", juce::Colours::transparentBlack, new GateTab (audioProcessor.apvts), true);
+<<<<<<< HEAD
     tabs.addTab ("EQ", juce::Colours::transparentBlack, new EQTab (audioProcessor.apvts), true);
+=======
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
     addAndMakeVisible (tabs);
 
     // Setup Preset Selector Dropdown
@@ -473,7 +559,11 @@ OthrysAudioProcessorEditor::OthrysAudioProcessorEditor (OthrysAudioProcessor& p)
                     if (file.getFileExtension() != ".rnv")
                         file = file.withFileExtension (".rnv");
                     
+<<<<<<< HEAD
                     audioProcessor.savePresetToFile (file);
+=======
+                    audioProcessor.savePresetToFile(file.getFileNameWithoutExtension());
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
                     updatePresetComboBox();
                 }
             });
@@ -519,6 +609,7 @@ OthrysAudioProcessorEditor::~OthrysAudioProcessorEditor()
 
 void OthrysAudioProcessorEditor::paint (juce::Graphics& g)
 {
+<<<<<<< HEAD
     auto bgImg = juce::ImageCache::getFromMemory (BinaryData::panel_background_jpg, BinaryData::panel_background_jpgSize);
     
     if (bgImg.isValid())
@@ -529,11 +620,18 @@ void OthrysAudioProcessorEditor::paint (juce::Graphics& g)
     {
         g.fillAll (juce::Colour::fromRGB (18, 18, 20));
     }
+=======
+    g.fillAll (juce::Colour::fromRGB (18, 18, 20));
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
 
     // Draw the Header Title (positioned centrally in top bar)
     g.setColour (juce::Colours::white);
     g.setFont (juce::FontOptions (18.0f));
+<<<<<<< HEAD
     g.drawText ("Othrys", 280, 10, 120, 30, juce::Justification::centred, true);
+=======
+    g.drawText ("Othrys", 240, 10, 150, 30, juce::Justification::left, true);
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
 }
 
 void OthrysAudioProcessorEditor::resized()
@@ -544,7 +642,11 @@ void OthrysAudioProcessorEditor::resized()
     auto topBar = bounds.removeFromTop (50);
     
     // Position Bypass button on the left of top bar
+<<<<<<< HEAD
     bypassButton.setBounds (topBar.removeFromLeft (150).reduced (5));
+=======
+    bypassButton.setBounds (topBar.removeFromLeft (100).reduced (5));
+>>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
     
     // Position Input Channel Selector next to it
     inputChannelSelector.setBounds (topBar.removeFromLeft (130).reduced (5));
