@@ -146,7 +146,7 @@ Before building Othrys, ensure you have the following installed:
     *   **VST3/AU:** Copy the generated plugin files to your DAW's plugin folders.
     *   **Standalone:** Run the executable directly.
 
-## Changes Made So Far (by the AI Agent)
+## Changes Made So Far
 
 During the development process, the following key changes and fixes were implemented to ensure the project builds successfully and adheres to modern JUCE practices:
 
@@ -158,10 +158,8 @@ During the development process, the following key changes and fixes were impleme
 
 ## Future Updates
 
-*   **Complete Renaming:** Fully transition all instances of "RnVDisto" (including classes, namespaces, internal identifiers, preset folder names, and file extensions like `.rnv`) to "Othrys" throughout the project, including updates to `CMakeLists.txt` for bundle identifiers and plugin codes.
 *   **Additional DSP Effects:** Implement new effects or refine existing ones (e.g., adding modulation, more complex filters).
 *   **Enhanced GUI Features:** Develop a more sophisticated and interactive user interface.
 *   **Comprehensive Testing:** Expand unit and integration tests to cover all DSP modules and plugin functionality.
 *   **Cross-Platform Testing:** Verify full functionality on both Windows and macOS platforms.
 *   **Documentation:** Add detailed API documentation for custom DSP modules.
->>>>>>> 87efd5a1ff5bb38083b33febfdd358027e8ce7d1
