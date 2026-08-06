@@ -1,6 +1,5 @@
 # Othrys Audio Plugin
 
-<<<<<<< HEAD
 Othrys is a modular creative audio effects plugin built with C++ and the JUCE framework. It is designed as a versatile multi-effects processor for music producers and sound designers, combining several essential effects into a single, cohesive unit.
 
 ## Core Features
